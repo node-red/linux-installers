@@ -1,2 +1,0 @@
-cat lint.log | grep E: | grep -v '\.node'
-cat lint.log | grep W: | grep -v '!node' | grep -v 'extra' | grep -v "image" | grep -v "please" | grep -v "not-executable" | grep -v '\.node'

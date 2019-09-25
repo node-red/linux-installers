@@ -170,7 +170,6 @@ case $yn in
         echo -ne "All done.\r\n"
         if [[ $GLOBAL == "true" ]]; then
             echo -ne "  You can now start Node-RED with the command  \033[0;36mnode-red-start\033[0m\r\n"
-            echo -ne "  or using the icon under   Menu / Programming / Node-RED\r\n"
         else
             echo -ne "  You can now start Node-RED with the command  \033[0;36m./node-red\033[0m\r\n"
         fi

@@ -4,7 +4,7 @@ pibuild/grab
 pibuild/packit
 pibuild/report
 pibuild/runit
-dist/*
+pibuild/dist/*
 *.deb
 *.rpm
 *socket

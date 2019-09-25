@@ -4,8 +4,7 @@ pibuild/grab
 pibuild/packit
 pibuild/report
 pibuild/runit
-pibuild/dist/*
+dist/*
 *.deb
 *.rpm
 *socket
-pibuild/lint.log

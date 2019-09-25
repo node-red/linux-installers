@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2016,2018 JS Foundation and other contributors, https://js.foundation/
+# Copyright 2016,2019 JS Foundation and other contributors, https://js.foundation/
 # Copyright 2015,2016 IBM Corp.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -88,7 +88,7 @@ sudo find . -type f -iname "*~" -exec rm {} \;
 echo "Tar up the existing install"
 sudo rm -rf /tmp/n*
 cd /
-sudo tar zcf /tmp/nred.tgz /usr/lib/node_modules/node-red* /usr/bin/node-red* /usr/bin/update-nodejs-and-nodered /usr/share/applications/Node-RED.desktop /lib/systemd/system/nodered.service /usr/share/icons/hicolor/scalable/apps/node-red-icon.svg
+sudo tar zcf /tmp/nred.tgz /usr/lib/node_modules/node-red* /usr/bin/node-red*  /usr/share/applications/Node-RED.desktop /lib/systemd/system/nodered.service /usr/share/icons/hicolor/scalable/apps/node-red-icon.svg
 echo " "
 ls -l /tmp/nred.tgz
 echo " "
@@ -146,7 +146,7 @@ echo " A graphical flow editor for event based applications." | sudo tee -a cont
 echo " Runs on Node.js - using a browser for the user interface." | sudo tee -a control
 echo " See http://nodered.org for more information, documentation and examples." | sudo tee -a control
 echo " ." | sudo tee -a control
-echo " Copyright 2017,2018 JS Foundation and other contributors, https://js.foundation/" | sudo tee -a control
+echo " Copyright 2017,2019 JS Foundation and other contributors, https://js.foundation/" | sudo tee -a control
 echo " Copyright 2015,2017 IBM Corp." | sudo tee -a control
 echo " Licensed under the Apache License, Version 2.0" | sudo tee -a control
 echo " http://www.apache.org/licenses/LICENSE-2.0" | sudo tee -a control

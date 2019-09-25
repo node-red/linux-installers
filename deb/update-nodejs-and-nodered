@@ -90,7 +90,7 @@ case $yn in
         CROSS='\033[1;31m\u2718\033[0m'
         cd "$NODERED_HOME" || exit 1
         clear
-        echo "Running Node-RED $EXTRAW for user $USER at $HOME on $MYOS\n"
+        echo -e "\nRunning Node-RED $EXTRAW for user $USER at $HOME on $MYOS\n"
         time1=$(date)
         echo "" | sudo tee -a /var/log/nodered-install.log >>/dev/null
         echo "***************************************" | sudo tee -a /var/log/nodered-install.log >>/dev/null

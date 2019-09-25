@@ -1,0 +1,11 @@
+.DS_Store
+pibuild/lint.log
+pibuild/grab
+pibuild/packit
+pibuild/report
+pibuild/runit
+pibuild/dist/*
+*.deb
+*.rpm
+*socket
+pibuild/lint.log

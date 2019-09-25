@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Node-RED
+Comment=Flow based application composer for the Internet of Things
+Icon=/usr/share/icons/hicolor/scalable/apps/node-red-icon.svg
+Exec=node-red-start
+Type=Application
+Encoding=UTF-8
+Terminal=true
+Categories=Development;

@@ -1,0 +1,9 @@
+/var/log/nodered-install.log
+{
+	rotate 4
+	weekly
+	missingok
+	notifempty
+	compress
+	delaycompress
+}

@@ -1,0 +1,16 @@
+#!/bin/bash
+
+#PINAME=192.168.1.125
+#PINAME=raspberrypi1.local
+PINAME=9.180.88.156
+
+scp -p node-red-pi-install10.sh pi@$PINAME:
+scp -p node-red-deb-pack10.sh pi@$PINAME:
+scp -pr resources/ pi@$PINAME:
+ssh pi@$PINAME ./node-red-pi-install10.sh
+ssh pi@$PINAME ./node-red-deb-pack10.sh
+scp -p pi@$PINAME:lint.log ./
+scp -p pi@$PINAME:dist/nodered* ./dist/
+ls -l dist/*
+cat lint.log | grep E: | grep -v '\.node'
+cat lint.log | grep W: | grep -v '!node' | grep -v 'extra' | grep -v "image" | grep -v "please" | grep -v "not-executable" | grep -v '\.node'

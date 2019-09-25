@@ -1,0 +1,9 @@
+[Unit]
+Description=Node-RED Socket
+PartOf=nodered.service
+
+[Socket]
+ListenStream=1880
+
+[Install]
+WantedBy=sockets.target

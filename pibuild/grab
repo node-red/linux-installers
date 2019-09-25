@@ -1,0 +1,10 @@
+#!/bin/bash
+
+PINAME=9.20.202.187
+#PINAME=192.168.1.74
+
+scp -p pi@$PINAME:lint.log ./
+cat lint.log | grep E: | grep -v '\.node'
+cat lint.log | grep W: | grep -v '!node' | grep -v 'extra' | grep -v "image" | grep -v "please" | grep -v "not-executable" | grep -v '\.node'
+echo " "
+scp -p pi@$PINAME:nodered*.deb ./

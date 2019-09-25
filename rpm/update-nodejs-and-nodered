@@ -1,0 +1,193 @@
+#!/bin/bash
+#
+# Copyright 2019 JS Foundation and other contributors, https://js.foundation/
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Node-RED Installer for RPM based systems
+
+echo -ne "\033[2 q"
+
+if [ "$EUID" == "0" ]
+  then echo -en "\nRoot user detected. Typically install as a normal user. No need for sudo.\r\n\r\n"
+  read -p "Are you really sure you want to install as root ? (y/N) ? " yn
+  case $yn in
+    [Yy]* )
+    ;;
+    * )
+      exit
+    ;;
+  esac
+fi
+
+if curl -f https://www.npmjs.com/package/node-red  >/dev/null 2>&1; then
+echo -e '\033]2;'Node-RED update'\007'
+echo " "
+echo "This script will do an install of node.js, Node-RED and the service packages to auto-run Node-RED"
+echo " "
+
+read -p "Are you really sure you want to do this ? [y/N] ? " yn
+case $yn in
+    [Yy]* )
+        echo ""
+
+        # this script assumes that $HOME is the folder of the user that runs node-red
+        # that $USER is the user name and the group name to use when running is the
+        # primary group of that user
+        # if this is not correct then edit the lines below
+        NODERED_HOME=$HOME
+        NODERED_USER=$USER
+        NODERED_GROUP=`id -gn`
+
+        MYOS=$(cat /etc/*release | grep "^ID=" | cut -d = -f 2)
+        versions='fedora"centos"rhel"'
+        if [[ $versions != *"$MYOS"* ]]; then
+            echo " "
+            echo "Doesn't seem to be running on RedHat, Centos or Fedora, quitting"
+            echo " "
+            exit 1
+        fi
+        GLOBAL="true"
+        TICK='\033[1;32m\u2714\033[0m'
+        CROSS='\033[1;31m\u2718\033[0m'
+        cd "$NODERED_HOME" || exit 1
+        clear
+        echo -e '\nRunning nodejs and Node-RED install for user '$USER' at '$HOME' on '$MYOS'\n'
+        time1=$(date)
+        echo "" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        echo "***************************************" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        echo "" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        echo "Started : "$time1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        echo "Running for user $USER at $HOME" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        echo -ne '  Stop Node-RED                       \r\n'
+        echo -ne '  Install Node.js                     \r\n'
+        echo -ne '  Install Node-RED core               \r\n'
+        echo -ne '  Add shortcut commands               \r\n'
+        echo -ne '  Update systemd script               \r\n'
+        echo -ne '  Update public zone firewall rule    \r\n'
+        echo -ne '                                      \r\n'
+        echo -ne '\r\nAny errors will be logged to   /var/log/nodered-install.log\r\n'
+        echo -ne '\033[9A'
+
+        # stop any running node-red service
+        if sudo systemctl stop nodered 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null ; then CHAR=$TICK; else CHAR=$CROSS; fi
+        echo -ne "  Stop Node-RED                       $CHAR\r\n"
+
+        # ensure ~/.config dir is owned by the user
+        sudo chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.config/
+        echo "Now install nodejs" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        if [ $MYOS = "fedora" ]; then
+            if sudo dnf module install -y nodejs:10 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+        else
+            if curl -sL https://rpm.nodesource.com/setup_10.x | sudo -E bash - 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+            if sudo yum install -y nodejs 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+        fi
+        echo -ne "  Install Node.js LTS                 $CHAR"
+        # sudo npm i -g npm 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null;
+        hash -r
+        rc=""
+        if nov=$(node -v 2>/dev/null); then :; else rc="ERR"; fi
+        if npv=$(npm -v 2>/dev/null); then :; else rc="ERR"; fi
+        if [[ $rc == "" ]]; then
+            echo -ne "   Node $nov   Npm $npv\r\n"
+        else
+            echo -ne "\b$CROSS   Failed to install Node.js - Exit\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n"
+            exit 2
+        fi
+
+        # clean up the npm cache and node-gyp
+
+        # and install Node-RED
+        echo "Now install Node-RED" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        if [[ $GLOBAL == "true" ]]; then
+            if sudo npm i -g --unsafe-perm --no-progress node-red@latest 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+        else
+            if npm i -g --unsafe-perm --no-progress node-red@latest 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+        fi
+        nrv=$(npm --no-progress -g ls node-red | grep node-red | cut -d '@' -f 2 | sudo tee -a /var/log/nodered-install.log) >>/dev/null 2>&1
+        echo -ne "  Install Node-RED core               $CHAR   $nrv\r\n"
+
+        echo "Now create basic package.json for the user" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        mkdir -p "$NODERED_HOME/.node-red/node_modules"
+        sudo chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.node-red/ 2>&1 >>/dev/null
+        pushd "$NODERED_HOME/.node-red" 2>&1 >>/dev/null
+            npm config set update-notifier false 2>&1 >>/dev/null
+            if [ ! -f "package.json" ]; then
+                echo '{' > package.json
+                echo '  "name": "node-red-project",' >> package.json
+                echo '  "description": "A Node-RED Project",' >> package.json
+                echo '  "version": "0.0.1",' >> package.json
+                echo '  "dependencies": {' >> package.json
+                echo '  }' >> package.json
+                echo '}' >> package.json
+            fi
+        popd 2>&1 >>/dev/null
+        sudo chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.npm 2>&1 >>/dev/null
+
+        echo "Now add start/stop/reload/log scripts" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        sudo mkdir -p /usr/bin
+        if curl -f https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-icon.svg >/dev/null 2>&1; then
+            sudo curl -sL -o /usr/bin/node-red-start https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-start.rpm 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+            sudo curl -sL -o /usr/bin/node-red-stop https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-stop 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+            sudo curl -sL -o /usr/bin/node-red-restart https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-restart 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+            sudo curl -sL -o /usr/bin/node-red-log https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-log 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+            sudo curl -sL -o /etc/logrotate.d/nodered https://raw.githubusercontent.com/node-red/linux-installers/master/resources/nodered.rotate 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+            sudo chmod +x /usr/bin/node-red-start
+            sudo chmod +x /usr/bin/node-red-stop
+            sudo chmod +x /usr/bin/node-red-restart
+            sudo chmod +x /usr/bin/node-red-log
+            echo -ne "  Add shortcut commands               $TICK\r\n"
+        else
+            echo -ne "  Add shortcut commands               $CROSS\r\n"
+        fi
+
+        echo "Now add systemd script and configure it for $USER" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        if sudo curl -sL -o /etc/systemd/system/nodered.service https://raw.githubusercontent.com/node-red/linux-installers/master/resources/nodered.service 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+        # set the User Group and WorkingDirectory in nodered.service
+        sudo sed -i 's#^User=pi#User='$NODERED_USER'#;s#^Group=pi#Group='$NODERED_GROUP'#;s#^WorkingDirectory=/home/pi#WorkingDirectory='$NODERED_HOME'#;' /etc/systemd/system/nodered.service
+        sudo systemctl daemon-reload 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        echo -ne "  Update systemd script               $CHAR\r\n"
+
+        echo "Now add firewall rule for 1880" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        if sudo curl -sL -o /etc/firewalld/services/nodered.xml https://raw.githubusercontent.com/node-red/linux-installers/master/resources/nodered.xml 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+        sudo firewall-cmd --zone=public --add-service=nodered 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        sudo firewall-cmd --reload 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        sudo firewall-cmd --zone=public --add-service=nodered --permanent 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        sudo firewall-cmd --reload 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        echo -ne "  Update public zone firewall rule    $CHAR\r\n"
+
+        echo -ne "\r\n\r\n\r\n"
+        echo -ne "All done.\r\n"
+        if [[ $GLOBAL == "true" ]]; then
+            echo -ne "  You can now start Node-RED with the command  \033[0;36mnode-red-start\033[0m\r\n"
+            echo -ne "  or using the icon under   Menu / Programming / Node-RED\r\n"
+        else
+            echo -ne "  You can now start Node-RED with the command  \033[0;36m./node-red\033[0m\r\n"
+        fi
+        echo -ne "  Then point your browser to \033[0;36mlocalhost:1880\033[0m or \033[0;36mhttp://{your_pi_ip-address}:1880\033[0m\r\n"
+        echo -ne "\r\nStarted  $time1  -  Finished  $(date)\r\n\r\n"
+        echo "Finished : "$time1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+    ;;
+    * )
+        echo " "
+        exit 1
+    ;;
+esac
+else
+echo " "
+echo "Sorry - cannot connect to internet - not going to touch anything."
+echo "https://www.npmjs.com/package/node-red   is not reachable."
+echo "Please ensure you have a working internet connection."
+echo " "
+exit 1
+fi

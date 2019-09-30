@@ -141,8 +141,8 @@ echo "Installed-Size: $SIZE" | sudo tee -a control
 echo "Depends: nodejs (>= 10), npm (>= 5.8), python (>= 2.7)" | sudo tee -a control
 echo "Homepage: http://nodered.org" | sudo tee -a control
 echo "Maintainer: Dave Conway-Jones <dceejay@gmail.com>" | sudo tee -a control
-echo "Description: Node-RED flow editor for the Internet of Things" | sudo tee -a control
-echo " A graphical flow editor for event based applications." | sudo tee -a control
+echo "Description: Node-RED - low-code programming for event-driven applications" | sudo tee -a control
+echo " A graphical flow editor for event driven applications." | sudo tee -a control
 echo " Runs on Node.js - using a browser for the user interface." | sudo tee -a control
 echo " See http://nodered.org for more information, documentation and examples." | sudo tee -a control
 echo " ." | sudo tee -a control

@@ -69,12 +69,10 @@ case $yn in
         echo ""
         EXTRANODES=""
         EXTRAW="update"
-        if [ ! -d "/usr/lib/node_modules/node-red-node-serialport" ] && [ ! -d "$HOME/.node-red/node_modules/node-red-node-serialport" ]; then
-            read -r -t 15 -p "Would you like to install the Pi-specific nodes ? [y/N] ? " response
-            if [[ "$response" =~ ^([yY])+$ ]]; then
-                EXTRANODES="node-red-node-pi-gpio node-red-node-random node-red-node-ping node-red-contrib-play-audio node-red-node-smooth node-red-node-serialport"
-                EXTRAW="install"
-            fi
+        read -r -t 15 -p "Would you like to install the Pi-specific nodes ? [y/N] ? " response
+        if [[ "$response" =~ ^([yY])+$ ]]; then
+            EXTRANODES="node-red-node-pi-gpio node-red-node-random node-red-node-ping node-red-contrib-play-audio node-red-node-smooth node-red-node-serialport"
+            EXTRAW="install"
         fi
 
         # this script assumes that $HOME is the folder of the user that runs node-red

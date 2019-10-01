@@ -18,7 +18,7 @@ The command line for installing on a RPM based OS is:
 bash <(curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/rpm/update-nodejs-and-nodered)
 ```
 
-**Note**: This script will automatically add a firewall rule to add port 1880 to the public zone. On a default install this should allow access to Node-RED from outside of the local machine. 
+**Note**: This script will optionally add a firewall rule that adds port 1880 to the public zone. On a default install this should allow access to Node-RED from outside of the local machine. The default is not to do this.
 
 ### Pi Build
 

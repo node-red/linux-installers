@@ -30,6 +30,12 @@ if [ "$EUID" == "0" ]
   esac
 fi
 
+OPENFW="NO"
+read -r -t 15 -p "Would you like to add Node-RED port 1880 to the firewall public zone ? [y/N] ? " response
+if [[ "$response" =~ ^([yY])+$ ]]; then
+    OPENFW="YES"
+fi
+
 if curl -f https://www.npmjs.com/package/node-red  >/dev/null 2>&1; then
 echo -e '\033]2;'Node-RED update'\007'
 echo " "
@@ -158,14 +164,18 @@ case $yn in
         sudo systemctl daemon-reload 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
         echo -ne "  Update systemd script               $CHAR\r\n"
 
-        echo "Now add firewall rule for 1880" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-        if sudo curl -sL -o /etc/firewalld/services/nodered.xml https://raw.githubusercontent.com/node-red/linux-installers/master/resources/nodered.xml 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
-        sudo firewall-cmd --zone=public --add-service=nodered 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-        sudo firewall-cmd --reload 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-        sudo firewall-cmd --zone=public --add-service=nodered --permanent 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-        sudo firewall-cmd --reload 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-        echo -ne "  Update public zone firewall rule    $CHAR\r\n"
-
+        if [[ $OPENFW == "YES" ]]; then
+            echo "Now add firewall rule for 1880" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+            if sudo curl -sL -o /etc/firewalld/services/nodered.xml https://raw.githubusercontent.com/node-red/linux-installers/master/resources/nodered.xml 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+            sudo firewall-cmd --zone=public --add-service=nodered 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+            sudo firewall-cmd --reload 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+            sudo firewall-cmd --zone=public --add-service=nodered --permanent 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+            sudo firewall-cmd --reload 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+            echo -ne "  Update public zone firewall rule    $CHAR\r\n"
+        else
+            echo "Not adding firewall rule" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+            echo -ne "  Not adding firewall rule            -\r\n"
+        fi
         echo -ne "\r\n\r\n\r\n"
         echo -ne "All done.\r\n"
         if [[ $GLOBAL == "true" ]]; then

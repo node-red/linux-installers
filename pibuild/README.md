@@ -1,8 +1,9 @@
-# raspbian-deb-package
+# Build .deb package for Pi.
 
-Scripts required to build the Node-RED deb package for Raspbian Buster.
+Scripts required for the project to build the Node-RED deb package for the Raspbian software repository. Regular users can get the deb from the Raspbian repository using apt if required though we recommend the install script.
 
-The last version of Node-RED for Jessie was 0.15.3.
+The last prebuilt deb version of Node-RED for Jessie was 0.15.3.
+The last prebuilt deb version of Node-RED for Stretch was 0.20.8.
 
 **WARNING**: If you already have Node-RED installed **do not** run this *just for fun*. It will probably break your existing install.
 

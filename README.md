@@ -22,4 +22,4 @@ bash <(curl -sL https://raw.githubusercontent.com/node-red/linux-installers/mast
 
 ### Pi Build
 
-The pibuild directory contains the scripts and files we use to build the pre-install .deb version of Node-RED for the Raspberry Pi. Most users should never need this as the script above is the recommended way to install and upgrade. See the [README](pibuild/README) in that directory for more information.
+The pibuild directory contains the scripts and files we use to build the pre-install .deb version of Node-RED for the Raspberry Pi. Most users should never need this as the script above is the recommended way to install and upgrade. See the [README](pibuild) in that directory for more information.

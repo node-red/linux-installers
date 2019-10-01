@@ -80,7 +80,7 @@ popd
 mkdir -p ~/.node-red
 #sudo npm install -g --unsafe-perm --no-progress node-red-admin
 echo "Node-RED installed. Adding a few extra nodes"
-sudo npm install -g --unsafe-perm --no-progress node-red-node-random node-red-node-ping node-red-node-smooth node-red-contrib-play-audio node-red-node-serialport
+sudo npm install -g --unsafe-perm --no-progress node-red-node-pi-gpio node-red-node-random node-red-node-ping node-red-node-smooth node-red-contrib-play-audio node-red-node-serialport
 # sudo setcap cap_net_raw+eip $(eval readlink -f `which node`)
 
 match='editorTheme: {'

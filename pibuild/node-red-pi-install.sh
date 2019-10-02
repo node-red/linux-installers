@@ -99,10 +99,13 @@ if [ -d "resources" ]; then
     cd resources
     sudo chown root:root *
     sudo chmod +x node-red-st*
+    sudo chmod +x node-red-re*
     sudo chmod +x node-red-log
     sudo cp nodered.service /lib/systemd/system/
     sudo cp node-red-start /usr/bin/
     sudo cp node-red-stop /usr/bin/
+    sudo cp node-red-restart /usr/bin/
+    sudo cp node-red-reload /usr/bin/
     sudo cp node-red-log /usr/bin/
     sudo cp node-red-icon.svg /usr/share/icons/hicolor/scalable/apps/node-red-icon.svg
     sudo chmod 644 /usr/share/icons/hicolor/scalable/apps/node-red-icon.svg

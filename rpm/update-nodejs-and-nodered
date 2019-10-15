@@ -56,7 +56,7 @@ case $yn in
         NODERED_GROUP=`id -gn`
 
         MYOS=$(cat /etc/*release | grep "^ID=" | cut -d = -f 2)
-        versions='fedora"centos"rhel"'
+        versions='fedora"centos"rhel"ol"'
         if [[ $versions != *"$MYOS"* ]]; then
             echo " "
             echo "Doesn't seem to be running on RedHat, Centos or Fedora, quitting"

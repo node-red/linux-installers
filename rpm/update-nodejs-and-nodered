@@ -59,7 +59,7 @@ case $yn in
         versions='fedora"centos"rhel"ol"'
         if [[ $versions != *"$MYOS"* ]]; then
             echo " "
-            echo "Doesn't seem to be running on RedHat, Centos or Fedora, quitting"
+            echo "Doesn't seem to be running on Oracle Linux, RedHat, Centos or Fedora, quitting"
             echo " "
             exit 1
         fi

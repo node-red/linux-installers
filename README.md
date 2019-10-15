@@ -10,7 +10,7 @@ The command line for installing on a Debian based OS is:
 bash <(curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/deb/update-nodejs-and-nodered)
 ```
 
-### Red Hat, Fedora, CentOS
+### Red Hat, Fedora, CentOS, Oracle Linux
 
 The command line for installing on a RPM based OS is:
 

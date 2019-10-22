@@ -17,6 +17,7 @@
 
 # Node-RED Installer for DEB based systems
 
+umask 0022
 echo -ne "\033[2 q"
 if [[ -e /mnt/dietpi_userdata ]]; then
     echo -ne "\n\033[1;32mDiet-Pi\033[0m detected - only going to add the  \033[0;36mnode-red-start, -stop, -log\033[0m  commands.\n"

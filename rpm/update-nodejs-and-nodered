@@ -16,6 +16,7 @@
 
 # Node-RED Installer for RPM based systems
 
+umask 0022
 echo -ne "\033[2 q"
 
 if [ "$EUID" == "0" ]

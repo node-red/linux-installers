@@ -15,6 +15,11 @@ env:
       - OS=debian DIST=buster
 
 
+before_script:
+  - sudo echo $NVM_DIR
+  - sudo echo $(node -v)
+  - sudo rm -rf $NVM_DIR ~/.npm ~/.bower
+
 script:
   - curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/deb/update-nodejs-and-nodered > nr.sh
   - echo y | bash nr.sh

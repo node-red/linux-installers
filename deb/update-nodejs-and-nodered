@@ -215,6 +215,7 @@ case $yn in
                     echo -ne "  Install Node.js LTS                 \r"
                     # use the official script to install for other debian platforms
                     sudo apt install -y curl 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                    OV=`cat /etc/os-release | grep VERSION_ID | cut -d '"' -f 2`
                     if [[ "$OV" = "8" ]]; then
                         curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash - 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
                     else

@@ -215,7 +215,11 @@ case $yn in
                     echo -ne "  Install Node.js LTS                 \r"
                     # use the official script to install for other debian platforms
                     sudo apt install -y curl 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-                    curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash - 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                    if [[ "$OV" = "8" ]]; then
+                        curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash - 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                    else
+                        curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash - 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                    fi
                     if sudo apt install -y nodejs 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
                     echo -ne "  Install Node.js LTS                 $CHAR"
                 fi

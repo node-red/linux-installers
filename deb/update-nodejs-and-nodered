@@ -163,11 +163,16 @@ case $yn in
                     echo "Removing nodejs "$nv | sudo tee -a /var/log/nodered-install.log >>/dev/null
                     sudo apt remove -y nodejs nodejs-legacy npm 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
                     sudo rm -rf /etc/apt/sources.d/nodesource.list /usr/lib/node_modules/npm*
-                    if curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash - 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+                    OV=`cat /etc/os-release | grep VERSION_ID | cut -d '"' -f 2`
+                    if [[ "$OV" = "8" ]]; then
+                        if curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash - 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+                    else
+                        if curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash - 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+                    fi
                 else
                     CHAR="-"
                 fi
-                echo -ne "  Remove old version of Node.js       $CHAR $nv\r\n"
+                echo -ne "  Remove old version of Node.js       $CHAR  $nv\r\n"
                 echo -ne "  Update Node.js LTS                  \r"
                 if sudo apt install -y nodejs 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
                 echo -ne "  Update Node.js LTS                  $CHAR"

@@ -5,10 +5,11 @@ sudo: required
 
 env:
     matrix:
-      # - OS=ubuntu DIST=xenial
-      # - OS=ubuntu DIST=bionic
-      # - OS=ubuntu DIST=disco
-      # - OS=ubuntu DIST=eoan
+      - OS=ubuntu DIST=trusty
+      - OS=ubuntu DIST=xenial
+      - OS=ubuntu DIST=bionic
+      - OS=ubuntu DIST=disco
+      - OS=ubuntu DIST=eoan
       - OS=debian DIST=jessie
       - OS=debian DIST=stretch
       - OS=debian DIST=buster
@@ -21,6 +22,7 @@ before_script:
   - sudo rm -rf $NVM_DIR ~/.npm ~/.bower
   - sudo echo $(node -v)
   - sudo echo $TRAVIS_DIST $DIST
+  - if [ "$DIST" = "trusty" ]; then sudo echo "VERSION_ID=\"8\"" > /etc/os-release ; fi
   - if [ "$DIST" = "jessie" ]; then sudo echo "VERSION_ID=\"8\"" > /etc/os-release ; fi
 
 script:

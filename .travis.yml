@@ -3,7 +3,6 @@
 os:
   - linux
 
-dist: jessie
 sudo: required
 
 env:
@@ -13,8 +12,8 @@ env:
       # - OS=ubuntu DIST=disco
       # - OS=ubuntu DIST=eoan
       - OS=debian DIST=jessie
-      # - OS=debian DIST=stretch
-      # - OS=debian DIST=buster
+      - OS=debian DIST=stretch
+      - OS=debian DIST=buster
 
 
 script:

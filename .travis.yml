@@ -18,6 +18,7 @@ before_script:
   - sudo echo $NVM_DIR
   - sudo echo $(/etc/os_release)
   - sudo apt -y install libstdc++6 
+  - sudo export | grep TRAVIS
   - sudo rm -rf $NVM_DIR ~/.npm ~/.bower
   - sudo echo $(node -v)
 

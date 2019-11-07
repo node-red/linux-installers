@@ -1,0 +1,25 @@
+
+
+os:
+  - linux
+
+dist: jessie
+sudo: required
+
+env:
+    matrix:
+      # - OS=ubuntu DIST=xenial
+      # - OS=ubuntu DIST=bionic
+      # - OS=ubuntu DIST=disco
+      # - OS=ubuntu DIST=eoan
+      - OS=debian DIST=jessie
+      # - OS=debian DIST=stretch
+      # - OS=debian DIST=buster
+
+
+before_install:
+  - sudo apt-get update
+  - sudo apt-get -y install curl wget build-essential
+
+script:
+  - sudo bash <(curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/deb/update-nodejs-and-nodered)

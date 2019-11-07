@@ -18,9 +18,9 @@ before_script:
   - sudo echo $NVM_DIR
   - sudo echo $(/etc/os_release)
   - sudo apt -y install libstdc++6 
-  - sudo export | grep TRAVIS
   - sudo rm -rf $NVM_DIR ~/.npm ~/.bower
   - sudo echo $(node -v)
+  - sudo echo $TRAVIS_DIST
   - if [ "$TRAVIS_DIST" = "jessie" ]; then echo "VERSION_ID=\"8\"" > /etc/os-release ; fi
 
 script:

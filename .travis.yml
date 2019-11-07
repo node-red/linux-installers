@@ -17,7 +17,7 @@ env:
 
 before_script:
   - sudo echo $NVM_DIR
-  - sudo echo /etc/os_release
+  - sudo echo $(/etc/os_release)
   - sudo echo $(node -v)
   - sudo rm -rf $NVM_DIR ~/.npm ~/.bower
   - sudo echo $(node -v)

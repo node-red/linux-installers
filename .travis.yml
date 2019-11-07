@@ -17,8 +17,7 @@ env:
 before_script:
   - sudo echo $NVM_DIR
   - sudo echo $(/etc/os_release)
-  - sudo apt purge gcc make
-  - sudo apt install gcc_4.9.2-2
+  - sudo apt -y install libstdc++6 
   - sudo rm -rf $NVM_DIR ~/.npm ~/.bower
   - sudo echo $(node -v)
 

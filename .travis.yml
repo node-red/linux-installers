@@ -22,8 +22,8 @@ before_script:
   - sudo rm -rf $NVM_DIR ~/.npm ~/.bower
   - sudo echo $(node -v)
   - sudo echo $TRAVIS_DIST $DIST
-  - if [ "$DIST" = "trusty" ]; then echo "VERSION_ID=\"8\"" | sudo tee /etc/os-release ; fi
-  - if [ "$DIST" = "jessie" ]; then echo "VERSION_ID=\"8\"" | sudo tee /etc/os-release ; fi
+  - if [ "$DIST" = "trusty" ]; then echo "VERSION_ID=\"8\"" | sudo tee /etc/os-release ; curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash - ; fi
+  - if [ "$DIST" = "jessie" ]; then echo "VERSION_ID=\"8\"" | sudo tee /etc/os-release ; curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash - ; fi
   - cat /etc/os-release | grep VERSION_ID | cut -d '"' -f 2
 
 script:

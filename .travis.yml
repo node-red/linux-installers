@@ -1,9 +1,5 @@
 
-os:
-  - linux
-
-dist:
-  jessie
+dist: trusty
 
 sudo: required
 

@@ -21,9 +21,9 @@ script:
   - echo "OS is $OS"
   - if [ "$OS" = "centos:7" ]; then
       docker run -it $OS /bin/sh -c "curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/rpm/update-nodejs-and-nodered > nr.sh && printf '%s\n' Y N Y | bash nr.sh"; 
-    if [ "$OS" = "centos:latest" ]; then
+    elif [ "$OS" = "centos:latest" ]; then
       docker run -it $OS /bin/sh -c "curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/rpm/update-nodejs-and-nodered > nr.sh && printf '%s\n' Y N Y | bash nr.sh"; 
-    if [ "$OS" = "fedora:latest" ]; then
+    elif [ "$OS" = "fedora:latest" ]; then
       docker run -it $OS /bin/sh -c "curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/rpm/update-nodejs-and-nodered > nr.sh && printf '%s\n' Y N Y | bash nr.sh"; 
     else 
       docker run -it $OS /bin/sh -c "apt update && apt install curl && curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/deb/update-nodejs-and-nodered > nr.sh && printf '%s\n' Y Y Y | bash nr.sh"; 

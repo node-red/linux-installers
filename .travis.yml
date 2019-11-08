@@ -12,7 +12,6 @@ matrix:
     - env: OS='debian:jessie'
     - env: OS='debian:stretch'
     - env: OS='debian:buster'
-    - env: OS='debian:bullseye'
 
 before_install:
   - docker pull $OS

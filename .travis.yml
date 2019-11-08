@@ -1,32 +1,16 @@
 
-dist: trusty
-
 sudo: required
 
-env:
-    matrix:
-      - OS=ubuntu DIST=trusty
-      - OS=ubuntu DIST=xenial
-      - OS=ubuntu DIST=bionic
-      - OS=ubuntu DIST=cosmic
-      - OS=ubuntu DIST=disco
-      - OS=ubuntu DIST=eoan
-      - OS=debian DIST=jessie
-      - OS=debian DIST=stretch
-      - OS=debian DIST=buster
+matrix:
+  include:
+    - env: OS='ubuntu:18.04'
+    - env: OS='centos:7'
 
+before_install:
+  - docker pull $OS
 
-before_script:
-  - sudo echo $NVM_DIR
-  - sudo echo $(/etc/os_release)
-  - sudo apt -y install libstdc++6 
-  - sudo rm -rf $NVM_DIR ~/.npm ~/.bower
-  - sudo echo $(node -v)
-  - sudo echo $TRAVIS_DIST $DIST
-  - if [ "$DIST" = "trusty" ]; then echo "VERSION_ID=\"8\"" | sudo tee /etc/os-release ; curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash - ; fi
-  - if [ "$DIST" = "jessie" ]; then echo "VERSION_ID=\"8\"" | sudo tee /etc/os-release ; curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash - ; fi
-  - cat /etc/os-release | grep VERSION_ID | cut -d '"' -f 2
+# install:
+#   - docker run -d $OS /bin/sh -c "provision container if you do not have a prebuilt image and are instead using base images"
 
 script:
-  - curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/deb/update-nodejs-and-nodered > nr.sh
-  - echo y | bash nr.sh
+  - if [ "$OS" = "centos:7" ]; then  docker run -d $OS /bin/sh -c "curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/deb/update-nodejs-and-nodered > nr.sh && echo y | bash nr.sh"; fi

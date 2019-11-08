@@ -3,26 +3,22 @@ sudo: required
 
 matrix:
   include:
-    - env: OS='centos:7'
-    - env: OS='centos:latest'
-    - env: OS='fedora:latest'
-    - env: OS='ubuntu:16.04'
-    - env: OS='ubuntu:18.04'
-    - env: OS='ubuntu:19.04'
-    - env: OS='debian:jessie'
-    - env: OS='debian:stretch'
-    - env: OS='debian:buster'
+    - env: OS='centos:7' OSTYPE='rpm'
+    - env: OS='centos:latest' OSTYPE="rpm"
+    - env: OS='fedora:latest' OSTYPE="rpm"
+    - env: OS='ubuntu:16.04' OSTYPE="deb"
+    - env: OS='ubuntu:18.04' OSTYPE="deb"
+    - env: OS='ubuntu:19.04' OSTYPE="deb"
+    - env: OS='debian:jessie' OSTYPE="deb"
+    - env: OS='debian:stretch' OSTYPE="deb"
+    - env: OS='debian:buster' OSTYPE="deb"
 
 before_install:
   - docker pull $OS
 
 script:
   - echo "OS is $OS"
-  - if [ "$OS" = "centos:7" ]; then
-      docker run -it $OS /bin/sh -c "curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/rpm/update-nodejs-and-nodered > nr.sh && printf '%s\n' Y N Y | bash nr.sh"; 
-    elif [ "$OS" = "centos:latest" ]; then
-      docker run -it $OS /bin/sh -c "curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/rpm/update-nodejs-and-nodered > nr.sh && printf '%s\n' Y N Y | bash nr.sh"; 
-    elif [ "$OS" = "fedora:latest" ]; then
+  - if [ "$OSTYPE" = "rpm" ]; then
       docker run -it $OS /bin/sh -c "curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/rpm/update-nodejs-and-nodered > nr.sh && printf '%s\n' Y N Y | bash nr.sh"; 
     else 
       docker run -it $OS /bin/sh -c "apt-get update && apt-get -y install curl sudo lsb-release && curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/deb/update-nodejs-and-nodered > nr.sh && printf '%s\n' Y Y Y | bash nr.sh";      

@@ -1,4 +1,4 @@
-
+os : linux
 sudo: required
 
 matrix:
@@ -13,4 +13,9 @@ before_install:
 #   - docker run -d $OS /bin/sh -c "provision container if you do not have a prebuilt image and are instead using base images"
 
 script:
-  - if [ "$OS" = "centos:7" ]; then  docker run -d $OS /bin/sh -c "curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/deb/update-nodejs-and-nodered > nr.sh && echo y | bash nr.sh"; fi
+  - echo "OS is $OS"
+  - if [ "$OS" = "centos:7" ]; then
+      docker run -d $OS /bin/sh -c "curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/rpm/update-nodejs-and-nodered > nr.sh && echo y | bash nr.sh"; 
+    else 
+      docker run -d $OS /bin/sh -c "curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/deb/update-nodejs-and-nodered > nr.sh && echo y | bash nr.sh"; 
+    fi

@@ -18,6 +18,51 @@
 # Node-RED Installer for DEB based systems
 
 umask 0022
+
+usage() {
+  cat << EOL
+Usage: $0 [options]
+
+Options:
+  --help            display this help and exits
+  --confirm-root    install as root without asking confirmation
+  --confirm-install confirm installation without asking confirmation
+  --confirm-pi      confirm installation of PI specific nodes without asking confirmation
+EOL
+}
+
+if [ $# -gt 0 ]; then
+  # Parsing parameters
+  while (( "$#" )); do
+    case "$1" in
+      --help)
+        usage && exit 0
+        shift
+        ;;
+      --confirm-root)
+        CONFIRM_ROOT="y"
+        shift
+        ;;
+      --confirm-install)
+        CONFIRM_INSTALL="y"
+        shift
+        ;;
+      --confirm-pi)
+        CONFIRM_PI="y"
+        shift
+        ;;
+      --) # end argument parsing
+        shift
+        break
+        ;;
+      -*|--*=) # unsupported flags
+        echo "Error: Unsupported flag $1" >&2
+        exit 1
+        ;;
+    esac
+  done
+fi
+
 echo -ne "\033[2 q"
 if [[ -e /mnt/dietpi_userdata ]]; then
     echo -ne "\n\033[1;32mDiet-Pi\033[0m detected - only going to add the  \033[0;36mnode-red-start, -stop, -log\033[0m  commands.\n"
@@ -34,7 +79,9 @@ else
 
 if [ "$EUID" == "0" ]
   then echo -en "\nRoot user detected. Typically install as a normal user. No need for sudo.\r\n\r\n"
-  read -p "Are you really sure you want to install as root ? (y/N) ? " yn
+
+  yn="${CONFIRM_ROOT}"
+  [ ! "${yn}" ] && read -p "Are you really sure you want to install as root ? (y/N) ? " yn
   case $yn in
     [Yy]* )
     ;;
@@ -64,13 +111,16 @@ echo "not damage your Pi, or otherwise compromise your configuration."
 echo "If in doubt please backup your SD card first."
 echo " "
 
-read -p "Are you really sure you want to do this ? [y/N] ? " yn
+yn="${CONFIRM_INSTALL}"
+[ ! "${yn}" ] && read -p "Are you really sure you want to do this ? [y/N] ? " yn
 case $yn in
     [Yy]* )
         echo ""
         EXTRANODES=""
         EXTRAW="update"
-        read -r -t 15 -p "Would you like to install the Pi-specific nodes ? [y/N] ? " response
+
+        response="${CONFIRM_PI}"
+        [ ! "${response}" ] && read -r -t 15 -p "Would you like to install the Pi-specific nodes ? [y/N] ? " response
         if [[ "$response" =~ ^([yY])+$ ]]; then
             EXTRANODES="node-red-node-pi-gpio node-red-node-random node-red-node-ping node-red-contrib-play-audio node-red-node-smooth node-red-node-serialport"
             EXTRAW="install"

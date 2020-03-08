@@ -307,11 +307,11 @@ case $yn in
         # and install Node-RED
         echo "Now install Node-RED" | sudo tee -a /var/log/nodered-install.log >>/dev/null
         if [[ $GLOBAL == "true" ]]; then
-            if sudo npm i -g --unsafe-perm --no-progress node-red@latest 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+            if sudo npm i -g --unsafe-perm --no-progress --no-update-notifier --no-audit node-red@latest 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
         else
-            if npm i -g --unsafe-perm --no-progress node-red@latest 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+            if npm i -g --unsafe-perm --no-progress --no-update-notifier --no-audit node-red@latest 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
         fi
-        nrv=$(npm --no-progress -g ls node-red | grep node-red | cut -d '@' -f 2 | sudo tee -a /var/log/nodered-install.log) >>/dev/null 2>&1
+        nrv=$(npm --no-progress --no-update-notifier -g ls node-red | grep node-red | cut -d '@' -f 2 | sudo tee -a /var/log/nodered-install.log) >>/dev/null 2>&1
         echo -ne "  Install Node-RED core               $CHAR   $nrv\r\n"
 
         # install any nodes, that were installed globally, as local instead
@@ -331,14 +331,14 @@ case $yn in
             fi
             CHAR="-"
             if [[ $GLOBALNODES != " " ]]; then
-                if npm i --unsafe-perm --save --no-progress $GLOBALNODES 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+                if npm i --unsafe-perm --save --no-progress --no-update-notifier --no-audit $GLOBALNODES 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
             fi
             echo -ne "  Move global nodes to local          $CHAR\r\n"
 
             CHAR="-"
             if [[ ! -z $EXTRANODES ]]; then
                 echo "Installing extra nodes: $EXTRANODES :" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-                if npm i --unsafe-perm --save --no-progress $EXTRANODES 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+                if npm i --unsafe-perm --save --no-progress --no-update-notifier --no-audit $EXTRANODES 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
             fi
             echo -ne "  Install extra Pi nodes              $CHAR\r\n"
 

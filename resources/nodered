@@ -32,9 +32,9 @@ start)
         chown $USER:$USER $LOG
         echo "" >> $LOG
         echo "Node-RED service start: "$(date) >> $LOG
-#        su -l $USER -c "cd ~/.node-red && screen -dmS red node-red-pi --max-old-space-size=256"
+#        su -l $USER -c "cd ~/.node-red && screen -dmS red node-red-pi --max-old-space-size=512"
 # or
-        su -l $USER -c "node-red-pi --max-old-space-size=256 -u ~/.node-red >> $LOG &"
+        su -l $USER -c "node-red-pi --max-old-space-size=512 -u ~/.node-red >> $LOG &"
         echo "Logging to "$LOG
     fi
 ;;

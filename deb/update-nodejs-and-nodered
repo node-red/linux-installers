@@ -89,6 +89,7 @@ if [ "$EUID" == "0" ]
       exit
     ;;
   esac
+  id -u nobody &>/dev/null || adduser --no-create-home --shell /dev/null --disabled-password --disabled-login --gecos '' nobody &>/dev/null
 fi
 if [[ $(cat /etc/*-release | grep VERSION=) != *"wheezy"* ]]; then
 if [[ "$(uname)" != "Darwin" ]]; then
@@ -291,6 +292,9 @@ case $yn in
         else
             echo -ne "\b$CROSS   Failed to install Node.js - Exit\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n"
             exit 2
+        fi
+        if [ "$EUID" == "0" ]
+            npm config set unsafe-perm true &>/dev/null
         fi
 
         # clean up the npm cache and node-gyp

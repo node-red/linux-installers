@@ -293,9 +293,7 @@ case $yn in
             echo -ne "\b$CROSS   Failed to install Node.js - Exit\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n"
             exit 2
         fi
-        if [ "$EUID" == "0" ]
-            npm config set unsafe-perm true &>/dev/null
-        fi
+        if [ "$EUID" == "0" ]; then npm config set unsafe-perm true &>/dev/null; fi
 
         # clean up the npm cache and node-gyp
         if [[ $NUPG == $TICK ]]; then

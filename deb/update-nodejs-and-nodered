@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2016,2019 JS Foundation and other contributors, https://js.foundation/
+# Copyright 2016,2020 JS Foundation and other contributors, https://js.foundation/
 # Copyright 2015,2016 IBM Corp.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@
 # Node-RED Installer for DEB based systems
 
 umask 0022
-tgt=12.16.3
+tgt=12.17.0
 
 usage() {
   cat << EOL
@@ -92,13 +92,12 @@ if [ "$EUID" == "0" ]
   esac
   id -u nobody &>/dev/null || adduser --no-create-home --shell /dev/null --disabled-password --disabled-login --gecos '' nobody &>/dev/null
 fi
-if [[ $(cat /etc/*-release | grep VERSION=) != *"wheezy"* ]]; then
 if [[ "$(uname)" != "Darwin" ]]; then
 if curl -f https://www.npmjs.com/package/node-red  >/dev/null 2>&1; then
 echo -e '\033]2;'Node-RED update'\007'
 echo " "
 echo "This script will remove versions of Node.js prior to version 7.x, and Node-RED and"
-echo "if necessary replace them with Node.js 10.x LTS (dubnium) and the latest Node-RED from Npm."
+echo "if necessary replace them with Node.js 12.x LTS (dubnium) and the latest Node-RED from Npm."
 echo " "
 echo "It also moves any Node-RED nodes that are globally installed into your user"
 echo "~/.node-red/node_modules directory, and adds them to your package.json, so that"
@@ -112,6 +111,10 @@ echo "To do all this it runs commands as root - please satisfy yourself that thi
 echo "not damage your Pi, or otherwise compromise your configuration."
 echo "If in doubt please backup your SD card first."
 echo " "
+if [[ -e $HOME/.nvm ]]; then
+    echo -ne '\033[1mNOTE:\033[0m We notice you are using \033[38;5;88mnvm\033[0m. Please ensure it is running the current LTS version.\n'
+    echo -ne 'Using nvm is NOT RECOMMENDED. Node-RED will not run as a service under nvm.\r\n\n'
+fi
 
 yn="${CONFIRM_INSTALL}"
 [ ! "${yn}" ] && read -p "Are you really sure you want to do this ? [y/N] ? " yn
@@ -203,16 +206,18 @@ case $yn in
             fi
             rm /tmp/node.tgz 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
             echo -ne "  Install Node.js for i686            $CHAR"
-        elif [[ -e $NODERED_HOME/.nvm ]]; then
-            echo -ne '  Using NVM to manage Node.js         +   please run   \033[0;36mnvm use lts/*\033[0m   before running ./node-red\r\n'
-            echo -ne '  NOTE: Using nvm is NOT RECOMMENDED. Node-RED will not run as a service unde nvm.\r\n'
-            export NVM_DIR=$NODERED_HOME/.nvm
+        elif [[ -e $HOME/.nvm ]]; then
+            echo -ne '  Using NVM to manage Node.js         +   please run   \033[0;36mnvm use lts\033[0m   before running Node-RED\r\n'
+            echo -ne '  NOTE: Using nvm is NOT RECOMMENDED.     Node-RED will not run as a service under nvm.\r\n'
+            export NVM_DIR=$HOME/.nvm
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-            nvm install --lts/* >/dev/null 2>&1
-            nvm use lts/* >/dev/null 2>&1
-            nvm alias default lts/* >/dev/null 2>&1
+            echo "Using NVM !!! $(nvm current)" 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+            nvm install --lts --no-progress --latest-npm >/dev/null 2>&1
+            nvm use lts >/dev/null 2>&1
+            nvm alias default lts >/dev/null 2>&1
+            echo "Now using --- $(nvm current)" 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
             GLOBAL="false"
-            ln -f -s $NODERED_HOME/.nvm/versions/node/$(nvm current)/lib/node_modules/node-red/red.js  $NODERED_HOME/node-red
+            ln -f -s $HOME/.nvm/versions/node/$(nvm current)/lib/node_modules/node-red/red.js  $NODERED_HOME/node-red
             echo -ne "  Update Node.js LTS                  $CHAR"
         elif [[ $(which n) ]]; then
             echo -ne "  Using N to manage Node.js           +\r\n"
@@ -420,7 +425,6 @@ case $yn in
             sudo adduser $NODERED_USER gpio 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
         fi
 
-
         echo -ne "\r\n\r\n\r\n"
         echo -ne "All done.\r\n"
         if [[ $GLOBAL == "true" ]]; then
@@ -431,6 +435,7 @@ case $yn in
         fi
         echo -ne "  Then point your browser to \033[0;36mlocalhost:1880\033[0m or \033[0;36mhttp://{your_pi_ip-address}:1880\033[0m\r\n"
         echo -ne "\r\nStarted  $time1  -  Finished  $(date)\r\n\r\n"
+        echo "Memory : $(free -h -t | grep Total | awk '{print $2}' | cut -d i -f 1)" | sudo tee -a /var/log/nodered-install.log >>/dev/null
         echo "Finished : "$time1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
     ;;
     * )
@@ -450,13 +455,6 @@ fi
 else
 echo " "
 echo "Sorry - I'm not supposed to be run on a Mac."
-echo "Please see the documentation at http://nodered.org/docs/getting-started/upgrading."
-echo " "
-exit 1
-fi
-else
-echo " "
-echo "Sorry - I'm not able to upgrade old Wheezy installations. Please think about updating."
 echo "Please see the documentation at http://nodered.org/docs/getting-started/upgrading."
 echo " "
 exit 1

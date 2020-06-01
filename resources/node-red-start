@@ -24,71 +24,42 @@ if [[ $(which node-red) ]]; then
         echo -e "\033[0m                                                  \033[0m"
         echo -e " "
     fi
-    if [[ $(which node) ]]; then
-        nv=`node -v | cut -d "." -f1`
-        # if [ "$nv" = "v0" ] || [ "$nv" = "v4" ] || [ "$nv" = "v5" ]; then
-        if [ "$nv" = "v0" ]; then
-            echo -e "\033[0m                                                  \033[0m"
-            echo -e "\033[0m    node.js $nv.x is NO LONGER supported.          \033[0m"
-            echo -e "\033[0m    please consider upgrading to node.js LTS.     \033[0m"
-            echo -e "\033[0m                                                  \033[0m"
-            echo -e "\033[0m    you can do this with the following command:   \033[0m"
-            echo -e "\033[0m        update-nodejs-and-nodered                 \033[0m"
-            echo -e "\033[0m                                                  \033[0m"
-            echo -e " "
-        fi
-        HOSTIP=`hostname -I | cut -d ' ' -f 1`
-        if [ "$HOSTIP" = "" ]; then
-            HOSTIP="127.0.0.1"
-        fi
-        echo -e "\033[1mStart \033[38;5;88mNode-RED\033[0m"
+    HOSTIP=`hostname -I | cut -d ' ' -f 1`
+    if [ "$HOSTIP" = "" ]; then
+        HOSTIP="127.0.0.1"
+    fi
+    echo -e "\033[1mStart \033[38;5;88mNode-RED\033[0m"
+    echo " "
+    echo "Once Node-RED has started, point a browser at http://$HOSTIP:1880"
+    echo "On Pi Node-RED works better with the Firefox or Chrome browser"
+    echo " "
+    if groups | grep -q -w sudo; then
+        echo -e "Use   \033[0;36mnode-red-stop\033[0m                          to stop Node-RED"
+        echo -e "Use   \033[0;36mnode-red-start\033[0m                         to start Node-RED again"
+        echo -e "Use   \033[0;36mnode-red-log\033[0m                           to view the recent log output"
+    fi
+    echo -e "Use   \033[0;36msudo systemctl enable nodered.service\033[0m  to autostart Node-RED at every boot"
+    echo -e "Use   \033[0;36msudo systemctl disable nodered.service\033[0m to disable autostart on boot"
+    echo " "
+    echo "To find more nodes and example flows - go to http://flows.nodered.org"
+    if [ "$nv" = "v0" ]; then
+        echo "You may also need to install and upgrade npm"
+        echo -e "      \033[0;36msudo apt-get install npm\033[0m"
+        echo -e "      \033[0;36msudo npm i -g npm@2.x\033[0m"
+    fi
+    if groups | grep -q -w sudo; then
+        # Current user is member of sudo group, start node-red through systemd
+        sudo systemctl start nodered
         echo " "
-        echo "Once Node-RED has started, point a browser at http://$HOSTIP:1880"
-        echo "On Pi Node-RED works better with the Firefox or Chrome browser"
-        echo " "
-        if groups | grep -q -w sudo; then
-            echo -e "Use   \033[0;36mnode-red-stop\033[0m                          to stop Node-RED"
-            echo -e "Use   \033[0;36mnode-red-start\033[0m                         to start Node-RED again"
-            echo -e "Use   \033[0;36mnode-red-log\033[0m                           to view the recent log output"
-        fi
-        echo -e "Use   \033[0;36msudo systemctl enable nodered.service\033[0m  to autostart Node-RED at every boot"
-        echo -e "Use   \033[0;36msudo systemctl disable nodered.service\033[0m to disable autostart on boot"
-        echo " "
-        echo "To find more nodes and example flows - go to http://flows.nodered.org"
-        if [ "$nv" = "v0" ]; then
-            echo "You may also need to install and upgrade npm"
-            echo -e "      \033[0;36msudo apt-get install npm\033[0m"
-            echo -e "      \033[0;36msudo npm i -g npm@2.x\033[0m"
-        fi
-        if groups | grep -q -w sudo; then
-              # Current user is member of sudo group, start node-red through systemd
-              sudo systemctl start nodered
-              echo " "
-              echo "Starting as a systemd service."
-              sudo journalctl -f -n 0 -u nodered -o cat
-          else
-              # Start node-red as unprivileged user
-              node-red-pi
-          fi
+        echo "Starting as a systemd service."
+        sudo journalctl -f -n 0 -u nodered -o cat
     else
-        echo "Node is not yet fully installed"
-        update-nodejs-and-nodered $USER
-        if [ $? -eq 0 ]; then
-            read -p "Would you like to start Node-RED now (y/N) ? " yn
-            case $yn in
-                [Yy]* )
-                    node-red-start
-                ;;
-                * )
-                    echo " "
-                    exit
-                ;;
-            esac
-        fi
+        # Start node-red as unprivileged user
+        node-red-pi
     fi
 else
     echo "Node-RED is not yet fully installed."
-    update-nodejs-and-nodered $USER
+    bash <(curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/deb/update-nodejs-and-nodered)
     if [ $? -eq 0 ]; then
         read -p "Would you like to start Node-RED now (y/N) ? " yn
         case $yn in

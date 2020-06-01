@@ -47,7 +47,7 @@ if [[ $(which node-red) ]]; then
         echo -e "      \033[0;36msudo apt-get install npm\033[0m"
         echo -e "      \033[0;36msudo npm i -g npm@2.x\033[0m"
     fi
-    if groups | grep -q -w sudo; then
+    if groups $USER | grep -q -w sudo; then
         # Current user is member of sudo group, start node-red through systemd
         sudo systemctl start nodered
         echo " "
@@ -55,6 +55,8 @@ if [[ $(which node-red) ]]; then
         sudo journalctl -f -n 0 -u nodered -o cat
     else
         # Start node-red as unprivileged user
+        echo " "
+        echo "Starting as a normal user."
         node-red-pi
     fi
 else

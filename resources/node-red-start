@@ -87,7 +87,7 @@ if [[ $(which node-red) ]]; then
         fi
     fi
 else
-    echo "Node-RED is not yet fully installed"
+    echo "Node-RED is not yet fully installed."
     update-nodejs-and-nodered $USER
     if [ $? -eq 0 ]; then
         read -p "Would you like to start Node-RED now (y/N) ? " yn

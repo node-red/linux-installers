@@ -97,7 +97,7 @@ if curl -f https://www.npmjs.com/package/node-red  >/dev/null 2>&1; then
 echo -e '\033]2;'Node-RED update'\007'
 echo " "
 echo "This script will remove versions of Node.js prior to version 7.x, and Node-RED and"
-echo "if necessary replace them with Node.js 12.x LTS (dubnium) and the latest Node-RED from Npm."
+echo "if necessary replace them with Node.js 12.x LTS (erbium) and the latest Node-RED from Npm."
 echo " "
 echo "It also moves any Node-RED nodes that are globally installed into your user"
 echo "~/.node-red/node_modules directory, and adds them to your package.json, so that"
@@ -185,6 +185,7 @@ case $yn in
 
         nv="v0"
         nv2=""
+        ndeb=$(apt-cache policy nodejs | grep Installed | awk '{print $2}')
         if [[ -x "$(command -v node)" ]]; then
             nv=`node -v | cut -d "." -f1`
             nv2=`node -v`
@@ -196,6 +197,7 @@ case $yn in
         sudo chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.config/
         # maybe remove Node.js - or upgrade if nodesoure.list exists
         if [[ "$(uname -m)" =~ "i686" ]]; then
+            echo "Using i686" | sudo tee -a /var/log/nodered-install.log >>/dev/null
             curl -sL -o /tmp/node.tgz https://unofficial-builds.nodejs.org/download/release/v$tgt/node-v$tgt-linux-x86.tar.gz 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
             # unpack it into the correct places
             hd=$(head -c 9 /tmp/node.tgz)
@@ -220,14 +222,15 @@ case $yn in
             ln -f -s $HOME/.nvm/versions/node/$(nvm current)/lib/node_modules/node-red/red.js  $NODERED_HOME/node-red
             echo -ne "  Update Node.js LTS                  $CHAR"
         elif [[ $(which n) ]]; then
+            echo "Using n" | sudo tee -a /var/log/nodered-install.log >>/dev/null
             echo -ne "  Using N to manage Node.js           +\r\n"
             if sudo n lts 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
             echo -ne "  Update Node.js LTS                  $CHAR"
-        elif [ "$nv" = "v0" ] || [ "$nv" = "v1" ] || [ "$nv" = "v3" ] || [ "$nv" = "v4" ] || [ "$nv" = "v5" ] || [ "$nv" = "v6" ] || [ "$nv" = "v7" ] || [ "$nv" = "v9" ] || [ "$nv" = "v11" ] || [ "$nv2" = "v8.11.1" ] || [ "$nv2" = "v10.15.2" ] || [ "$nv2" = "v10.19.0" ]; then
+        elif [ "$nv" = "v0" ] || [ "$nv" = "v1" ] || [ "$nv" = "v3" ] || [ "$nv" = "v4" ] || [ "$nv" = "v5" ] || [ "$nv" = "v6" ] || [ "$nv" = "v7" ] || [ "$nv" = "v9" ] || [ "$nv" = "v11" ] || [[ "$ndeb" =~ "dfsg" ]]; then
             echo "Updating nodejs $nv2" | sudo tee -a /var/log/nodered-install.log >>/dev/null
             if [[ -f /etc/apt/sources.list.d/nodesource.list ]]; then
                 echo "Using nodesource.list" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-                if [ "$nv" = "v0" ] || [ "$nv" = "v1" ] || [ "$nv" = "v3" ] || [ "$nv" = "v4" ] || [ "$nv" = "v5" ] || [ "$nv" = "v6" ] || [ "$nv" = "v7" ] ||[ "$nv" = "v9" ] ||[ "$nv" = "v11" ] || [ "$nv2" = "v8.11.1" ] || [ "$nv2" = "v10.15.2" ] || [ "$nv2" = "v10.19.0" ]; then
+                if [ "$nv" = "v0" ] || [ "$nv" = "v1" ] || [ "$nv" = "v3" ] || [ "$nv" = "v4" ] || [ "$nv" = "v5" ] || [ "$nv" = "v6" ] || [ "$nv" = "v7" ] || [ "$nv" = "v9" ] || [ "$nv" = "v11" ] || [[ "$ndeb" =~ "dfsg" ]]; then
                     echo "Removing nodejs "$nv | sudo tee -a /var/log/nodered-install.log >>/dev/null
                     sudo apt remove -y nodejs nodejs-legacy npm 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
                     sudo rm -rf /etc/apt/sources.d/nodesource.list /usr/lib/node_modules/npm*
@@ -305,6 +308,7 @@ case $yn in
         rc=""
         if nov=$(node -v 2>/dev/null); then :; else rc="ERR"; fi
         if npv=$(npm -v 2>/dev/null); then :; else rc="ERR"; fi
+        echo "Versions: node:$nov npm:$npv" | sudo tee -a /var/log/nodered-install.log >>/dev/null
         if [[ $rc == "" ]]; then
             echo -ne "   Node $nov   Npm $npv\r\n"
         else

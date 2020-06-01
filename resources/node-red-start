@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2016,2017 JS Foundation and other contributors, https://js.foundation/
+# Copyright 2016,2020 JS Foundation and other contributors, https://js.foundation/
 # Copyright 2015,2016 IBM Corp.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 echo -e '\033]2;'Node-RED console'\007'
-if [[ $(which node-red) ]]; then
+if [[ $(which node-red-pi) ]]; then
     if [[ ! $(which npm) ]]; then
         echo -e "\033[0m                                                  \033[0m"
         echo -e "\033[0m    npm is not installed, it is recommended       \033[0m"
@@ -53,6 +53,12 @@ if [[ $(which node-red) ]]; then
         echo " "
         echo "Starting as a systemd service."
         sudo journalctl -f -n 0 -u nodered -o cat
+    elif groups $USER | grep -q -w root; then
+        # Current user is member of root group, start node-red through systemd
+        systemctl start nodered
+        echo " "
+        echo "Starting as root systemd service."
+        journalctl -f -n 0 -u nodered -o cat
     else
         # Start node-red as unprivileged user
         echo " "
@@ -60,18 +66,10 @@ if [[ $(which node-red) ]]; then
         node-red-pi
     fi
 else
-    echo "Node-RED is not yet fully installed."
-    bash <(curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/deb/update-nodejs-and-nodered)
-    if [ $? -eq 0 ]; then
-        read -p "Would you like to start Node-RED now (y/N) ? " yn
-        case $yn in
-            [Yy]* )
-                node-red-start
-            ;;
-            * )
-                echo " "
-                exit
-            ;;
-        esac
-    fi
+    echo "Node-RED is not yet fully installed. Please re-run the install script again manually."
+    echo " "
+    echo "   bash <(curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/deb/update-nodejs-and-nodered)"
+    echo " "
+    echo "then retry  node-red-start"
+    echo " "
 fi

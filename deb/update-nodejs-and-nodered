@@ -258,7 +258,7 @@ case $yn in
                 sudo rm -f /usr/local/bin/node* 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 sudo rm -rf /usr/local/bin/npm* /usr/local/bin/npx* /usr/lib/node_modules/npm* 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 if [ "$npv" = "1" ]; then
-                    sudo rm -rf /usr/local/lib/node_modules/* /usr/lib/node_modules/* 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                    sudo rm -rf /usr/local/lib/node_modules/node-red* /usr/lib/node_modules/node-red* 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 fi
                 sudo apt -y autoremove 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 echo -ne "  Remove old version of Node.js       \033[1;32m\u2714\033[0m\r\n"

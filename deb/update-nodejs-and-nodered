@@ -18,7 +18,7 @@
 # Node-RED Installer for DEB based systems
 
 umask 0022
-tgt=12.17.0
+tgt=12.16.2
 
 usage() {
   cat << EOL

@@ -8,7 +8,7 @@ matrix:
     - env: OS='fedora:latest' OSTYPE="rpm"
     - env: OS='ubuntu:16.04' OSTYPE="deb"
     - env: OS='ubuntu:18.04' OSTYPE="deb"
-    - env: OS='ubuntu:19.04' OSTYPE="deb"
+    - env: OS='ubuntu:20.04' OSTYPE="deb"
     - env: OS='debian:jessie' OSTYPE="deb"
     - env: OS='debian:stretch' OSTYPE="deb"
     - env: OS='debian:buster' OSTYPE="deb"

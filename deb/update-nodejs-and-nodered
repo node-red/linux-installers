@@ -208,6 +208,24 @@ case $yn in
             fi
             rm /tmp/node.tgz 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
             echo -ne "  Install Node.js for i686            $CHAR"
+        elif uname -m | grep -q armv6l ; then
+            sudo apt remove -y nodejs nodejs-legacy npm 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+            sudo rm -rf /etc/apt/sources.d/nodesource.list /usr/lib/node_modules/npm*
+            echo -ne "  Remove old version of Node.js       $TICK\r\n"
+            echo -ne "  Install Node.js for Armv6           \r"
+            # f=$(curl -sL https://nodejs.org/download/release/latest-dubnium/ | grep "armv6l.tar.gz" | cut -d '"' -f 2)
+            # curl -sL -o node.tgz https://nodejs.org/download/release/latest-dubnium/$f 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+            curl -sL -o /tmp/node.tgz https://unofficial-builds.nodejs.org/download/release/v$tgt/node-v$tgt-linux-armv6l.tar.gz 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+            # unpack it into the correct places
+            hd=$(head -c 9 /tmp/node.tgz)
+            if [ "$hd" == "<!DOCTYPE" ]; then
+                CHAR="$CROSS File $f not downloaded";
+            else
+                if sudo tar -zxf /tmp/node.tgz --strip-components=1 -C /usr 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+            fi
+            # remove the tgz file to save space
+            rm /tmp/node.tgz 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+            echo -ne "  Install Node.js for Armv6           $CHAR"
         elif [[ -e $HOME/.nvm ]]; then
             echo -ne '  Using NVM to manage Node.js         +   please run   \033[0;36mnvm use lts\033[0m   before running Node-RED\r\n'
             echo -ne '  NOTE: Using nvm is NOT RECOMMENDED.     Node-RED will not run as a service under nvm.\r\n'
@@ -264,22 +282,7 @@ case $yn in
                 echo -ne "  Remove old version of Node.js       \033[1;32m\u2714\033[0m\r\n"
                 echo "Grab the LTS bundle" | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 # sudo apt update -y 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-                if uname -m | grep -q armv6l ; then
-                    echo -ne "  Install Node.js for Armv6           \r"
-                    # f=$(curl -sL https://nodejs.org/download/release/latest-dubnium/ | grep "armv6l.tar.gz" | cut -d '"' -f 2)
-                    # curl -sL -o node.tgz https://nodejs.org/download/release/latest-dubnium/$f 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-                    curl -sL -o /tmp/node.tgz https://unofficial-builds.nodejs.org/download/release/v$tgt/node-v$tgt-linux-armv6l.tar.gz 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-                    # unpack it into the correct places
-                    hd=$(head -c 9 /tmp/node.tgz)
-                    if [ "$hd" == "<!DOCTYPE" ]; then
-                        CHAR="$CROSS File $f not downloaded";
-                    else
-                        if sudo tar -zxf /tmp/node.tgz --strip-components=1 -C /usr 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
-                    fi
-                    # remove the tgz file to save space
-                    rm /tmp/node.tgz 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-                    echo -ne "  Install Node.js for Armv6           $CHAR"
-                elif [[ $(lsb_release -d) == *"18.10"* ]]; then
+                if [[ $(lsb_release -d) == *"18.10"* ]]; then
                     echo -ne "  Apt install Node.js                 \r"
                     if sudo apt install -y nodejs npm curl 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
                     echo -ne "  Apt install Node.js                 $CHAR"

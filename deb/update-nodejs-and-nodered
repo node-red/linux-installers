@@ -95,7 +95,7 @@ if [ "$EUID" == "0" ]
 fi
 if [[ "$(uname)" != "Darwin" ]]; then
 # if curl -f https://www.npmjs.com/package/node-red  >/dev/null 2>&1; then
-if curl -f https://registry.npmjs.org/  >/dev/null 2>&1; then
+if curl -I https://registry.npmjs.org/@node-red/util  >/dev/null 2>&1; then
 echo -e '\033]2;'Node-RED update'\007'
 echo " "
 echo "This script will remove versions of Node.js prior to version 7.x, and Node-RED and"

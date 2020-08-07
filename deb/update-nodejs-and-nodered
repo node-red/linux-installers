@@ -18,7 +18,8 @@
 # Node-RED Installer for DEB based systems
 
 umask 0022
-tgt=12.16.3
+tgta=12.18.3   # need arm6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgtl=12.16.3   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 
 usage() {
   cat << EOL
@@ -93,7 +94,8 @@ if [ "$EUID" == "0" ]
   id -u nobody &>/dev/null || adduser --no-create-home --shell /dev/null --disabled-password --disabled-login --gecos '' nobody &>/dev/null
 fi
 if [[ "$(uname)" != "Darwin" ]]; then
-if curl -f https://www.npmjs.com/package/node-red  >/dev/null 2>&1; then
+# if curl -f https://www.npmjs.com/package/node-red  >/dev/null 2>&1; then
+if curl -f https://registry.npmjs.org/  >/dev/null 2>&1; then
 echo -e '\033]2;'Node-RED update'\007'
 echo " "
 echo "This script will remove versions of Node.js prior to version 7.x, and Node-RED and"
@@ -198,7 +200,7 @@ case $yn in
         # maybe remove Node.js - or upgrade if nodesoure.list exists
         if [[ "$(uname -m)" =~ "i686" ]]; then
             echo "Using i686" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-            curl -sL -o /tmp/node.tgz https://unofficial-builds.nodejs.org/download/release/v$tgt/node-v$tgt-linux-x86.tar.gz 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+            curl -sL -o /tmp/node.tgz https://unofficial-builds.nodejs.org/download/release/v$tgtl/node-v$tgtl-linux-x86.tar.gz 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
             # unpack it into the correct places
             hd=$(head -c 9 /tmp/node.tgz)
             if [ "$hd" == "<!DOCTYPE" ]; then
@@ -215,7 +217,7 @@ case $yn in
             echo -ne "  Install Node.js for Armv6           \r"
             # f=$(curl -sL https://nodejs.org/download/release/latest-dubnium/ | grep "armv6l.tar.gz" | cut -d '"' -f 2)
             # curl -sL -o node.tgz https://nodejs.org/download/release/latest-dubnium/$f 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-            curl -sL -o /tmp/node.tgz https://unofficial-builds.nodejs.org/download/release/v$tgt/node-v$tgt-linux-armv6l.tar.gz 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+            curl -sL -o /tmp/node.tgz https://unofficial-builds.nodejs.org/download/release/v$tgta/node-v$tgta-linux-armv6l.tar.gz 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
             # unpack it into the correct places
             hd=$(head -c 9 /tmp/node.tgz)
             if [ "$hd" == "<!DOCTYPE" ]; then

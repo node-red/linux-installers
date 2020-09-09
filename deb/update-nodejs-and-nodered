@@ -30,6 +30,7 @@ Options:
   --confirm-root    install as root without asking confirmation
   --confirm-install confirm installation without asking confirmation
   --confirm-pi      confirm installation of PI specific nodes without asking confirmation
+  --nodered-version (optional) if not set, the latest version is used.
 EOL
 }
 
@@ -53,6 +54,8 @@ if [ $# -gt 0 ]; then
         CONFIRM_PI="y"
         shift
         ;;
+      --nodered-version=*)
+        NODERED_VERSION="${1#*=}"
       --) # end argument parsing
         shift
         break
@@ -335,10 +338,18 @@ case $yn in
 
         # and install Node-RED
         echo "Now install Node-RED" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-        if [[ $GLOBAL == "true" ]]; then
-            if sudo npm i -g --unsafe-perm --no-progress --no-update-notifier --no-audit --no-fund node-red@latest 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+
+        NODERED_VERSION_SELECTION=""
+        if [ -z ${NODERED_VERSION} ]; then
+            NODERED_VERSION_SELECTION="latest"
         else
-            if npm i -g --unsafe-perm --no-progress --no-update-notifier --no-audit --no-fund node-red@latest 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+            NODERED_VERSION_SELECTION=${NODERED_VERSION}
+        fi
+
+        if [[ $GLOBAL == "true" ]]; then
+            if sudo npm i -g --unsafe-perm --no-progress --no-update-notifier --no-audit --no-fund node-red@"$NODERED_VERSION_SELECTION" 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+        else
+            if npm i -g --unsafe-perm --no-progress --no-update-notifier --no-audit --no-fund node-red@"$NODERED_VERSION_SELECTION" 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
         fi
         nrv=$(npm --no-progress --no-update-notifier --no-audit --no-fund -g ls node-red | grep node-red | cut -d '@' -f 2 | sudo tee -a /var/log/nodered-install.log) >>/dev/null 2>&1
         echo -ne "  Install Node-RED core               $CHAR   $nrv\r\n"

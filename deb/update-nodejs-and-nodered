@@ -30,7 +30,7 @@ Options:
   --confirm-root    install as root without asking confirmation
   --confirm-install confirm installation without asking confirmation
   --confirm-pi      confirm installation of PI specific nodes without asking confirmation
-  --nodered-version (optional) if not set, the latest version is used.
+  --nodered-version if not set, the latest version is used - e.g. --nodered-version="1.0.3"
 EOL
 }
 
@@ -56,6 +56,8 @@ if [ $# -gt 0 ]; then
         ;;
       --nodered-version=*)
         NODERED_VERSION="${1#*=}"
+        shift
+        ;;
       --) # end argument parsing
         shift
         break

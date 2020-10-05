@@ -205,7 +205,7 @@ case $yn in
         # maybe remove Node.js - or upgrade if nodesoure.list exists
         if [[ "$(uname -m)" =~ "i686" ]]; then
             echo "Using i686" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-            curl -sL -o /tmp/node.tgz https://unofficial-builds.nodejs.org/download/release/v$tgtl/node-v$tgtl-linux-x86.tar.gz 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+            curl -sSL -o /tmp/node.tgz https://unofficial-builds.nodejs.org/download/release/v$tgtl/node-v$tgtl-linux-x86.tar.gz 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
             # unpack it into the correct places
             hd=$(head -c 9 /tmp/node.tgz)
             if [ "$hd" == "<!DOCTYPE" ]; then
@@ -222,7 +222,7 @@ case $yn in
             echo -ne "  Install Node.js for Armv6           \r"
             # f=$(curl -sL https://nodejs.org/download/release/latest-dubnium/ | grep "armv6l.tar.gz" | cut -d '"' -f 2)
             # curl -sL -o node.tgz https://nodejs.org/download/release/latest-dubnium/$f 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-            curl -sL -o /tmp/node.tgz https://unofficial-builds.nodejs.org/download/release/v$tgta/node-v$tgta-linux-armv6l.tar.gz 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+            curl -sSL -o /tmp/node.tgz https://unofficial-builds.nodejs.org/download/release/v$tgta/node-v$tgta-linux-armv6l.tar.gz 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
             # unpack it into the correct places
             hd=$(head -c 9 /tmp/node.tgz)
             if [ "$hd" == "<!DOCTYPE" ]; then
@@ -261,9 +261,9 @@ case $yn in
                     sudo rm -rf /etc/apt/sources.d/nodesource.list /usr/lib/node_modules/npm*
                     OV=`cat /etc/os-release | grep VERSION_ID | cut -d '"' -f 2`
                     if [[ "$OV" = "8" ]]; then
-                        if curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash - 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+                        if curl -sSL https://deb.nodesource.com/setup_10.x | sudo -E bash - 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
                     else
-                        if curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash - 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+                        if curl -sSL https://deb.nodesource.com/setup_12.x | sudo -E bash - 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
                     fi
                 else
                     CHAR="-"
@@ -299,9 +299,9 @@ case $yn in
                     sudo apt install -y curl 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
                     OV=`cat /etc/os-release | grep VERSION_ID | cut -d '"' -f 2`
                     if [[ "$OV" = "8" ]]; then
-                        curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash - 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                        curl -sSL https://deb.nodesource.com/setup_10.x | sudo -E bash - 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
                     else
-                        curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash - 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                        curl -sSL https://deb.nodesource.com/setup_12.x | sudo -E bash - 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
                     fi
                     if sudo apt install -y nodejs 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
                     echo -ne "  Install Node.js LTS                 $CHAR"

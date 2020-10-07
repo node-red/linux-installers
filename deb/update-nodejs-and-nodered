@@ -50,6 +50,10 @@ if [ $# -gt 0 ]; then
         CONFIRM_INSTALL="y"
         shift
         ;;
+      --skip-pi)
+        CONFIRM_PI="n"
+        shift
+        ;;
       --confirm-pi)
         CONFIRM_PI="y"
         shift

@@ -166,7 +166,7 @@ sudo chmod 0755 preinst postinst prerm postrm
 cd ../usr/share
 sudo mkdir -p doc/nodered
 cd doc/nodered
-echo " Copyright 2017,2018 JS Foundation and other contributors, https://js.foundation/" | sudo tee copyright
+echo " Copyright 2017-2020 JS Foundation and other contributors, https://js.foundation/" | sudo tee copyright
 echo "nodered ($VER) unstable; urgency=low" | sudo tee changelog
 echo "  * Point release." | sudo tee -a changelog
 echo " -- DCJ <ceejay@vnet.ibm.com>  $(date '+%a, %d %b %Y %H:%M:%S +0000')" | sudo tee -a changelog

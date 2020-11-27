@@ -259,11 +259,11 @@ case $yn in
             echo -ne "  Using N to manage Node.js           +\r\n"
             if sudo n lts 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
             echo -ne "  Update Node.js LTS                  $CHAR"
-        elif [ "$nv" = "v0" ] || [ "$nv" = "v1" ] || [ "$nv" = "v3" ] || [ "$nv" = "v4" ] || [ "$nv" = "v5" ] || [ "$nv" = "v6" ] || [ "$nv" = "v7" ] || [ "$nv" = "v8" ] || [ "$nv" = "v9" ] || [ "$nv" = "v10" ] || [ "$nv" = "v11" ] || [ "$nv" = "v13" ] || [[ "$ndeb" =~ "dfsg" ]]; then
+        elif [ "$nv" = "v0" ] || [ "$nv" = "v1" ] || [ "$nv" = "v3" ] || [ "$nv" = "v4" ] || [ "$nv" = "v5" ] || [ "$nv" = "v6" ] || [ "$nv" = "v7" ] || [ "$nv" = "v8" ] || [ "$nv" = "v9" ] || [ "$nv" = "v11" ] || [ "$nv" = "v13" ] || [[ "$ndeb" =~ "dfsg" ]]; then
             echo "Updating nodejs $nv2" | sudo tee -a /var/log/nodered-install.log >>/dev/null
             if [[ -f /etc/apt/sources.list.d/nodesource.list ]]; then
                 echo "Using nodesource.list" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-                if [ "$nv" = "v0" ] || [ "$nv" = "v1" ] || [ "$nv" = "v3" ] || [ "$nv" = "v4" ] || [ "$nv" = "v5" ] || [ "$nv" = "v6" ] || [ "$nv" = "v7" ] || [ "$nv" = "v8" ] || [ "$nv" = "v9" ] || [ "$nv" = "v10" ] || [ "$nv" = "v11" ] || [ "$nv" = "v13" ] || [[ "$ndeb" =~ "dfsg" ]]; then
+                if [ "$nv" = "v0" ] || [ "$nv" = "v1" ] || [ "$nv" = "v3" ] || [ "$nv" = "v4" ] || [ "$nv" = "v5" ] || [ "$nv" = "v6" ] || [ "$nv" = "v7" ] || [ "$nv" = "v8" ] || [ "$nv" = "v9" ] || [ "$nv" = "v11" ] || [ "$nv" = "v13" ] || [[ "$ndeb" =~ "dfsg" ]]; then
                     echo "Removing nodejs "$nv | sudo tee -a /var/log/nodered-install.log >>/dev/null
                     sudo apt remove -y nodejs nodejs-legacy npm 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
                     sudo rm -rf /etc/apt/sources.d/nodesource.list /usr/lib/node_modules/npm*
@@ -309,7 +309,7 @@ case $yn in
         if nov=$(node -v 2>/dev/null); then :; else rc="ERR"; fi
         if npv=$(npm -v 2>/dev/null); then :; else rc="ERR"; fi
         echo "Versions: node:$nov npm:$npv" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-        if [[ $rc == "" ]]; then
+        if [[ "$rc" == "" ]]; then
             echo -ne "   Node $nov   Npm $npv\r\n"
         else
             echo -ne "\b$CROSS   Failed to install Node.js - Exit\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n"
@@ -318,8 +318,8 @@ case $yn in
         if [ "$EUID" == "0" ]; then npm config set unsafe-perm true &>/dev/null; fi
 
         # clean up the npm cache and node-gyp
-        if [[ $NUPG == $TICK ]]; then
-            if [[ $GLOBAL == "true" ]]; then
+        if [[ "$NUPG" == "$TICK" ]]; then
+            if [[ "$GLOBAL" == "true" ]]; then
                 sudo npm cache clean --force 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
             else
                 npm cache clean --force 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
@@ -338,7 +338,7 @@ case $yn in
             NODERED_VERSION_SELECTION=${NODERED_VERSION}
         fi
 
-        if [[ $GLOBAL == "true" ]]; then
+        if [[ "$GLOBAL" == "true" ]]; then
             if sudo npm i -g --unsafe-perm --no-progress --no-update-notifier --no-audit --no-fund node-red@"$NODERED_VERSION_SELECTION" 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
         else
             if npm i -g --unsafe-perm --no-progress --no-update-notifier --no-audit --no-fund node-red@"$NODERED_VERSION_SELECTION" 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
@@ -376,7 +376,7 @@ case $yn in
             echo -ne "  Install extra Pi nodes              $CHAR\r\n"
 
             # try to rebuild any already installed nodes
-            if [[ $NUPG == $TICK ]]; then
+            if [[ "$NUPG" == "$TICK" ]]; then
                 if npm rebuild --unsafe-perm 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
                 echo -ne "  Npm rebuild existing nodes          $CHAR\r\n"
             else
@@ -442,7 +442,7 @@ case $yn in
 
         echo -ne "\r\n\r\n\r\n"
         echo -ne "All done.\r\n"
-        if [[ $GLOBAL == "true" ]]; then
+        if [[ "$GLOBAL" == "true" ]]; then
             echo -ne "  You can now start Node-RED with the command  \033[0;36mnode-red-start\033[0m\r\n"
             echo -ne "  or using the icon under   Menu / Programming / Node-RED\r\n"
         else

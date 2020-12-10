@@ -416,6 +416,7 @@ case $yn in
         sudo sed -i 's#^User=pi#User='$NODERED_USER'#;s#^Group=pi#Group='$NODERED_GROUP'#;s#^WorkingDirectory=/home/pi#WorkingDirectory='$NODERED_HOME'#;' /lib/systemd/system/nodered.service
         sudo systemctl daemon-reload 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
         echo -ne "  Update systemd script               $CHAR\r\n"
+        sudo ln -s $(which python3) /usr/bin/python 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
 
         # remove unneeded large sentiment library to save space and load time
         sudo rm -f /usr/lib/node_modules/node-red/node_modules/multilang-sentiment/build/output/build-all.json 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null

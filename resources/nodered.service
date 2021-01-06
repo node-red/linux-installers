@@ -12,7 +12,6 @@ User=pi
 Group=pi
 WorkingDirectory=/home/pi
 
-Nice=5
 Environment="NODE_OPTIONS=--max_old_space_size=512"
 # uncomment and edit next line if you need an http proxy
 #Environment="HTTP_PROXY=my.httpproxy.server.address"

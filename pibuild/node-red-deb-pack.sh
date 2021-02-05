@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2016,2020 JS Foundation and other contributors, https://js.foundation/
+# Copyright 2016,2021 JS Foundation and other contributors, https://js.foundation/
 # Copyright 2015,2016 IBM Corp.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -149,7 +149,7 @@ echo " A graphical flow editor for event driven applications." | sudo tee -a con
 echo " Runs on Node.js - using a browser for the user interface." | sudo tee -a control
 echo " See http://nodered.org for more information, documentation and examples." | sudo tee -a control
 echo " ." | sudo tee -a control
-echo " Copyright 2017,2020 JS Foundation and other contributors, https://js.foundation/" | sudo tee -a control
+echo " Copyright 2017,2021 JS Foundation and other contributors, https://js.foundation/" | sudo tee -a control
 echo " Copyright 2015,2017 IBM Corp." | sudo tee -a control
 echo " Licensed under the Apache License, Version 2.0" | sudo tee -a control
 echo " http://www.apache.org/licenses/LICENSE-2.0" | sudo tee -a control
@@ -166,7 +166,7 @@ sudo chmod 0755 preinst postinst prerm postrm
 cd ../usr/share
 sudo mkdir -p doc/nodered
 cd doc/nodered
-echo " Copyright 2017-2020 JS Foundation and other contributors, https://js.foundation/" | sudo tee copyright
+echo " Copyright 2017-2021 JS Foundation and other contributors, https://js.foundation/" | sudo tee copyright
 echo "nodered ($VER) unstable; urgency=low" | sudo tee changelog
 echo "  * Point release." | sudo tee -a changelog
 echo " -- DCJ <ceejay@vnet.ibm.com>  $(date '+%a, %d %b %Y %H:%M:%S +0000')" | sudo tee -a changelog

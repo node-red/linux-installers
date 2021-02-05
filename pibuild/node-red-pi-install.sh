@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2016,2020 JS Foundation and other contributors, https://js.foundation/
+# Copyright 2016,2021 JS Foundation and other contributors, https://js.foundation/
 # Copyright 2015,2016 IBM Corp.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +31,7 @@ sudo apt update -y
 # sudo apt install nodejs nodejs-legacy npm lintian
 
 sudo apt install -y build-essential nodejs npm lintian
-sudo npm install -g --unsafe-perm npm@latest
+sudo npm install -g --unsafe-perm npm@6
 # Get node.js 4.8.2 to match stretch ... for now
 #wget https://nodejs.org/download/release/v4.8.2/node-v4.8.2-linux-armv6l.tar.gz -O /tmp/node.tgz
 #sudo tar -zxf /tmp/node.tgz --strip-components=1 -C /usr

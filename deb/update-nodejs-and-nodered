@@ -18,7 +18,7 @@
 # Node-RED Installer for DEB based systems
 
 umask 0022
-tgta=12.20.1   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgta=12.22.1   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 tgtl=12.16.3   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 
 usage() {

@@ -37,7 +37,8 @@ Options:
   --nodered-version if not set, the latest version is used - e.g. --nodered-version="1.3.4"
   --node14          if set, forces install of major version of nodejs 14 LTS
   --node12          if set, forces install of major version of nodejs 12 LTS
-                    if neither set, install nodejs 14 LTS if nodejs not installed, otherwise leave current install
+                    if neither set, install nodejs 14 LTS if nodejs version is less than 12,
+                    otherwise leave current install
 EOL
 }
 
@@ -486,7 +487,7 @@ case $yn in
         echo -ne "  Then point your browser to \033[0;36mlocalhost:1880\033[0m or \033[0;36mhttp://{your_pi_ip-address}:1880\033[0m\r\n"
         echo -ne "\r\nStarted  $time1  -  Finished  $(date)\r\n\r\n"
         echo "Memory : $(free -h -t | grep Total | awk '{print $2}' | cut -d i -f 1)" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-        echo "Finished : "$time1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        echo "Finished : $(date)" | sudo tee -a /var/log/nodered-install.log >>/dev/null
     ;;
     * )
         echo " "

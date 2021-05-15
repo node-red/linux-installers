@@ -18,8 +18,10 @@
 # Node-RED Installer for DEB based systems
 
 umask 0022
-tgta=12.22.1   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
-tgtl=12.16.3   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
+tgta12=12.22.1   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgtl12=12.16.3   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
+tgta14=14.17.0   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgtl14=14.17.0   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 
 usage() {
   cat << EOL
@@ -30,10 +32,16 @@ Options:
   --confirm-root    install as root without asking confirmation
   --confirm-install confirm installation without asking confirmation
   --confirm-pi      confirm installation of PI specific nodes without asking confirmation
-  --nodered-version if not set, the latest version is used - e.g. --nodered-version="1.1.3"
+  --skip-pi         skip installing PI specific nodes without asking confirmation
+  --restart         restart service if install succeeds
+  --nodered-version if not set, the latest version is used - e.g. --nodered-version="1.3.4"
+  --node14          if set, forces install of major version of nodejs 14 LTS
+  --node12          if set, forces install of major version of nodejs 12 LTS
+                    if neither set, install nodejs 14 LTS if nodejs not installed, otherwise leave current install
 EOL
 }
 
+NODE_VERSION=""
 if [ $# -gt 0 ]; then
   # Parsing parameters
   while (( "$#" )); do
@@ -56,6 +64,18 @@ if [ $# -gt 0 ]; then
         ;;
       --confirm-pi)
         CONFIRM_PI="y"
+        shift
+        ;;
+      --node12)
+        NODE_VERSION="12"
+        shift
+        ;;
+      --node14)
+        NODE_VERSION="14"
+        shift
+        ;;
+      --restart)
+        RESTART="y"
         shift
         ;;
       --nodered-version=*)
@@ -174,8 +194,8 @@ case $yn in
         echo -ne '  Clean npm cache                     \r\n'
         echo -ne '  Install Node-RED core               \r\n'
         echo -ne '  Move global nodes to local          \r\n'
-        echo -ne '  Install extra Pi nodes              \r\n'
         echo -ne '  Npm rebuild existing nodes          \r\n'
+        echo -ne '  Install extra Pi nodes              \r\n'
         echo -ne '  Add shortcut commands               \r\n'
         echo -ne '  Update systemd script               \r\n'
         echo -ne '                                      \r\n'
@@ -198,11 +218,11 @@ case $yn in
         sudo rm -rf /usr/lib/node_modules/node-red* /usr/bin/node-red* 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
         echo -ne '  Remove old version of Node-RED      \033[1;32m\u2714\033[0m\r\n'
 
-        nv="v0"
+        nv=0
         nv2=""
         ndeb=$(apt-cache policy nodejs | grep Installed | awk '{print $2}')
         if [[ -x "$(command -v node)" ]]; then
-            nv=`node -v | cut -d "." -f1`
+            nv=`node -v | cut -d "." -f1 | cut -d "v" -f2`
             nv2=`node -v`
             # nv2=`apt list nodejs 2>/dev/null | grep dfsg | cut -d ' ' -f 2 | cut -d '-' -f 1`
             echo "Already have nodejs $nv2" | sudo tee -a /var/log/nodered-install.log >>/dev/null
@@ -210,74 +230,80 @@ case $yn in
         # ensure ~/.config dir is owned by the user
         echo "Now install nodejs" | sudo tee -a /var/log/nodered-install.log >>/dev/null
         sudo chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.config/
-        # maybe remove Node.js - or upgrade if nodesoure.list exists
-        if [[ "$(uname -m)" =~ "i686" ]]; then
-            echo "Using i686" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-            curl -sSL -o /tmp/node.tgz https://unofficial-builds.nodejs.org/download/release/v$tgtl/node-v$tgtl-linux-x86.tar.gz 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-            # unpack it into the correct places
-            hd=$(head -c 9 /tmp/node.tgz)
-            if [ "$hd" == "<!DOCTYPE" ]; then
-                CHAR="$CROSS File $f not downloaded";
-            else
-                if sudo tar -zxf /tmp/node.tgz --strip-components=1 -C /usr 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+
+        echo "OLD nodejs "$nv" ::" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        echo "NEW nodejs "$NODE_VERSION" ::" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+
+        if [[ "$nv" -lt 12 ]]; then
+            if [[ "$NODE_VERSION" == "" ]]; then
+                NODE_VERSION="14"
             fi
-            rm /tmp/node.tgz 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-            echo -ne "  Install Node.js for i686            $CHAR"
-        elif uname -m | grep -q armv6l ; then
-            sudo apt remove -y nodejs nodejs-legacy npm 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-            sudo rm -rf /etc/apt/sources.d/nodesource.list /usr/lib/node_modules/npm*
-            echo -ne "  Remove old version of Node.js       $TICK\r\n"
-            echo -ne "  Install Node.js for Armv6           \r"
-            # f=$(curl -sL https://nodejs.org/download/release/latest-dubnium/ | grep "armv6l.tar.gz" | cut -d '"' -f 2)
-            # curl -sL -o node.tgz https://nodejs.org/download/release/latest-dubnium/$f 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-            curl -sSL -o /tmp/node.tgz https://unofficial-builds.nodejs.org/download/release/v$tgta/node-v$tgta-linux-armv6l.tar.gz 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-            # unpack it into the correct places
-            hd=$(head -c 9 /tmp/node.tgz)
-            if [ "$hd" == "<!DOCTYPE" ]; then
-                CHAR="$CROSS File $f not downloaded";
+            echo "Installing nodejs "$NODE_VERSION" over "$nv" ." | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        fi
+        if [[ "$NODE_VERSION" == "" ]]; then
+            CHAR="-"
+            echo -ne "  Node option not specified           :  --node12 or --node14\n"
+            echo -ne "  Leave existing Node.js              :"
+        else
+            if [[ "$NODE_VERSION" == "12" ]]; then
+                tgtl=$tgtl12
+                tgta=$tgta12
             else
-                if sudo tar -zxf /tmp/node.tgz --strip-components=1 -C /usr 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+                tgtl=$tgtl14
+                tgta=$tgta14
             fi
-            # remove the tgz file to save space
-            rm /tmp/node.tgz 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-            echo -ne "  Install Node.js for Armv6           $CHAR"
-        elif [[ -e $HOME/.nvm ]]; then
-            echo -ne '  Using NVM to manage Node.js         +   please run   \033[0;36mnvm use lts\033[0m   before running Node-RED\r\n'
-            echo -ne '  NOTE: Using nvm is NOT RECOMMENDED.     Node-RED will not run as a service under nvm.\r\n'
-            export NVM_DIR=$HOME/.nvm
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-            echo "Using NVM !!! $(nvm current)" 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-            nvm install --lts --no-progress --latest-npm >/dev/null 2>&1
-            nvm use lts >/dev/null 2>&1
-            nvm alias default lts >/dev/null 2>&1
-            echo "Now using --- $(nvm current)" 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-            GLOBAL="false"
-            ln -f -s $HOME/.nvm/versions/node/$(nvm current)/lib/node_modules/node-red/red.js  $NODERED_HOME/node-red
-            echo -ne "  Update Node.js LTS                  $CHAR"
-        elif [[ $(which n) ]]; then
-            echo "Using n" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-            echo -ne "  Using N to manage Node.js           +\r\n"
-            if sudo n lts 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
-            echo -ne "  Update Node.js LTS                  $CHAR"
-        elif [ "$nv" = "v0" ] || [ "$nv" = "v1" ] || [ "$nv" = "v3" ] || [ "$nv" = "v4" ] || [ "$nv" = "v5" ] || [ "$nv" = "v6" ] || [ "$nv" = "v7" ] || [ "$nv" = "v8" ] || [ "$nv" = "v9" ] || [ "$nv2" = "v10.23.1" ] || [ "$nv" = "v11" ] || [ "$nv" = "v13" ] || [[ "$ndeb" =~ "dfsg" ]]; then
-            echo "Updating nodejs $nv2" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-            if [[ -f /etc/apt/sources.list.d/nodesource.list ]]; then
-                echo "Using nodesource.list" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-                if [ "$nv" = "v0" ] || [ "$nv" = "v1" ] || [ "$nv" = "v3" ] || [ "$nv" = "v4" ] || [ "$nv" = "v5" ] || [ "$nv" = "v6" ] || [ "$nv" = "v7" ] || [ "$nv" = "v8" ] || [ "$nv" = "v9" ] || [ "$nv2" = "v10.23.1" ] || [ "$nv" = "v11" ] || [ "$nv" = "v13" ] || [[ "$ndeb" =~ "dfsg" ]]; then
-                    echo "Removing nodejs "$nv | sudo tee -a /var/log/nodered-install.log >>/dev/null
-                    sudo apt remove -y nodejs nodejs-legacy npm 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-                    sudo rm -rf /etc/apt/sources.d/nodesource.list /usr/lib/node_modules/npm*
-                    if curl -sSL https://deb.nodesource.com/setup_12.x | sudo -E bash - 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+            # maybe remove Node.js - or upgrade if nodesource.list exists
+            if [[ "$(uname -m)" =~ "i686" ]]; then
+                echo "Using i686" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                curl -sSL -o /tmp/node.tgz https://unofficial-builds.nodejs.org/download/release/v$tgtl/node-v$tgtl-linux-x86.tar.gz 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                # unpack it into the correct places
+                hd=$(head -c 9 /tmp/node.tgz)
+                if [ "$hd" == "<!DOCTYPE" ]; then
+                    CHAR="$CROSS File $f not downloaded";
                 else
-                    CHAR="-"
+                    if sudo tar -zxf /tmp/node.tgz --strip-components=1 -C /usr 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
                 fi
-                echo -ne "  Remove old version of Node.js       $CHAR  $nv\r\n"
-                echo -ne "  Update Node.js LTS                  \r"
-                if sudo apt install -y nodejs 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
-                echo -ne "  Update Node.js LTS                  $CHAR"
+                rm /tmp/node.tgz 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                echo -ne "  Install Node.js for i686            $CHAR"
+            elif uname -m | grep -q armv6l ; then
+                sudo apt remove -y nodejs nodejs-legacy npm 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                sudo rm -rf /etc/apt/sources.d/nodesource.list /usr/lib/node_modules/npm*
+                echo -ne "  Remove old version of Node.js       $TICK\r\n"
+                echo -ne "  Install Node.js for Armv6           \r"
+                # f=$(curl -sL https://nodejs.org/download/release/latest-dubnium/ | grep "armv6l.tar.gz" | cut -d '"' -f 2)
+                # curl -sL -o node.tgz https://nodejs.org/download/release/latest-dubnium/$f 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                curl -sSL -o /tmp/node.tgz https://unofficial-builds.nodejs.org/download/release/v$tgta/node-v$tgta-linux-armv6l.tar.gz 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                # unpack it into the correct places
+                hd=$(head -c 9 /tmp/node.tgz)
+                if [ "$hd" == "<!DOCTYPE" ]; then
+                    CHAR="$CROSS File $f not downloaded";
+                else
+                    if sudo tar -zxf /tmp/node.tgz --strip-components=1 -C /usr 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+                fi
+                # remove the tgz file to save space
+                rm /tmp/node.tgz 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                echo -ne "  Install Node.js for Armv6           $CHAR"
+            elif [[ -e $HOME/.nvm ]]; then
+                echo -ne '  Using NVM to manage Node.js         +   please run   \033[0;36mnvm use lts\033[0m   before running Node-RED\r\n'
+                echo -ne '  NOTE: Using nvm is NOT RECOMMENDED.     Node-RED will not run as a service under nvm.\r\n'
+                export NVM_DIR=$HOME/.nvm
+                [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+                echo "Using NVM !!! $(nvm current)" 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                nvm install $NODE_VERSION --no-progress --latest-npm >/dev/null 2>&1
+                nvm use $NODE_VERSION >/dev/null 2>&1
+                nvm alias default $NODE_VERSION >/dev/null 2>&1
+                echo "Now using --- $(nvm current)" 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                GLOBAL="false"
+                ln -f -s $HOME/.nvm/versions/node/$(nvm current)/lib/node_modules/node-red/red.js  $NODERED_HOME/node-red
+                echo -ne "  Update Node.js $NODE_VERSION                   $CHAR"
+            elif [[ $(which n) ]]; then
+                echo "Using n" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                echo -ne "  Using N to manage Node.js           +\r\n"
+                if sudo n $NODE_VERSION 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+                echo -ne "  Update Node.js $NODE_VERSION                   $CHAR"
             else
+                echo "Installing nodejs $NODE_VERSION" | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 # clean out old nodejs stuff
-                echo "Not using nodesource.list" | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 npv=$(npm -v 2>/dev/null | head -n 1 | cut -d "." -f1)
                 sudo apt remove -y nodejs nodejs-legacy npm 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 sudo dpkg -r nodejs 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
@@ -294,15 +320,12 @@ case $yn in
                 echo -ne "  Install Node.js LTS                 \r"
                 # use the official script to install for other debian platforms
                 sudo apt install -y curl 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-                curl -sSL https://deb.nodesource.com/setup_12.x | sudo -E bash - 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                curl -sSL https://deb.nodesource.com/setup_$NODE_VERSION.x | sudo -E bash - 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 if sudo apt install -y nodejs 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
                 echo -ne "  Install Node.js LTS                 $CHAR"
             fi
-        else
-            CHAR="-"
-            echo -ne "  Remove old version of Node.js       $CHAR\n"
-            echo -ne "  Leave existing Node.js              $CHAR"
         fi
+
         NUPG=$CHAR
         hash -r
         rc=""
@@ -368,6 +391,15 @@ case $yn in
             fi
             echo -ne "  Move global nodes to local          $CHAR\r\n"
 
+            # try to rebuild any already installed nodes
+            CHAR="-"
+            if [[ "$NUPG" == "$TICK" ]]; then
+                if npm rebuild --unsafe-perm 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+                echo -ne "  Npm rebuild existing nodes          $CHAR\r\n"
+            else
+                echo -ne "  Npm rebuild existing nodes          -\r\n"
+            fi
+
             CHAR="-"
             if [[ ! -z $EXTRANODES ]]; then
                 echo "Installing extra nodes: $EXTRANODES :" | sudo tee -a /var/log/nodered-install.log >>/dev/null
@@ -375,13 +407,6 @@ case $yn in
             fi
             echo -ne "  Install extra Pi nodes              $CHAR\r\n"
 
-            # try to rebuild any already installed nodes
-            if [[ "$NUPG" == "$TICK" ]]; then
-                if npm rebuild --unsafe-perm 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
-                echo -ne "  Npm rebuild existing nodes          $CHAR\r\n"
-            else
-                echo -ne "  Npm rebuild existing nodes          -\r\n"
-            fi
         popd 2>&1 >>/dev/null
         sudo chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.npm 2>&1 >>/dev/null
 
@@ -446,11 +471,17 @@ case $yn in
 
         echo -ne "\r\n\r\n\r\n"
         echo -ne "All done.\r\n"
-        if [[ "$GLOBAL" == "true" ]]; then
-            echo -ne "  You can now start Node-RED with the command  \033[0;36mnode-red-start\033[0m\r\n"
-            echo -ne "  or using the icon under   Menu / Programming / Node-RED\r\n"
+        if [[ "$RESTART" == "y" ]]; then
+            echo -ne "\033[1mRestarting \033[38;5;88mNode-RED\033[0m service\r\n"
+            sudo systemctl restart nodered
+            echo -ne "\033[1mRestarted  \033[38;5;88mNode-RED\033[0m\r\n"
         else
-            echo -ne "  You can now start Node-RED with the command  \033[0;36m./node-red\033[0m\r\n"
+            if [[ "$GLOBAL" == "true" ]]; then
+                echo -ne "  You can now start Node-RED with the command  \033[0;36mnode-red-start\033[0m\r\n"
+                echo -ne "  or using the icon under   Menu / Programming / Node-RED\r\n"
+            else
+                echo -ne "  You can now start Node-RED with the command  \033[0;36m./node-red\033[0m\r\n"
+            fi
         fi
         echo -ne "  Then point your browser to \033[0;36mlocalhost:1880\033[0m or \033[0;36mhttp://{your_pi_ip-address}:1880\033[0m\r\n"
         echo -ne "\r\nStarted  $time1  -  Finished  $(date)\r\n\r\n"

@@ -402,11 +402,11 @@ case $yn in
             if [[ "$UPDATENODES" == "y" ]]; then
                 echo "\nRunning npm update" | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 echo -ne "  Npm update existing nodes           "
-                if npm update --unsafe-perm 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+                if npm update --no-progress --no-update-notifier --no-fund 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
                 echo -ne "$CHAR\r\n"
             elif [[ "$NUPG" == "$TICK" ]]; then
                 echo "\nRunning npm rebuild" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-                if npm rebuild --unsafe-perm 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+                if npm rebuild --no-progress --no-update-notifier --no-fund 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
                 echo -ne "  Npm rebuild existing nodes          $CHAR\r\n"
             else
                 echo -ne "  Leave existing nodes                - you may wish to run npm update manually\r\n"
@@ -489,13 +489,13 @@ case $yn in
             echo -ne "\033[1mRestarted  \033[38;5;88mNode-RED\033[0m\r\n"
         else
             if [[ "$GLOBAL" == "true" ]]; then
-                echo -ne "  You can now start Node-RED with the command  \033[0;36mnode-red-start\033[0m\r\n"
+                echo -ne "You can now start Node-RED with the command  \033[0;36mnode-red-start\033[0m\r\n"
                 echo -ne "  or using the icon under   Menu / Programming / Node-RED\r\n"
             else
-                echo -ne "  You can now start Node-RED with the command  \033[0;36m./node-red\033[0m\r\n"
+                echo -ne "You can now start Node-RED with the command  \033[0;36m./node-red\033[0m\r\n"
             fi
         fi
-        echo -ne "  Then point your browser to \033[0;36mlocalhost:1880\033[0m or \033[0;36mhttp://{your_pi_ip-address}:1880\033[0m\r\n"
+        echo -ne "Then point your browser to \033[0;36mlocalhost:1880\033[0m or \033[0;36mhttp://{your_pi_ip-address}:1880\033[0m\r\n"
         echo -ne "\r\nStarted  $time1  -  Finished  $(date)\r\n\r\n"
         echo "Memory : $(free -h -t | grep Total | awk '{print $2}' | cut -d i -f 1)" | sudo tee -a /var/log/nodered-install.log >>/dev/null
         echo "Started  $time1  -  Finished  $(date)" | sudo tee -a /var/log/nodered-install.log >>/dev/null

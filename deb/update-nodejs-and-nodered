@@ -206,8 +206,7 @@ case $yn in
         echo "OLD nodejs "$nv" ::" | sudo tee -a /var/log/nodered-install.log >>/dev/null
         echo "NEW nodejs "$NODE_VERSION" ::" | sudo tee -a /var/log/nodered-install.log >>/dev/null
 
-        if [[ "$nv" -lt 12 && "$nv" -ne 0  && "$nrv" != 1 && "$nrv" != "" ]]; then
-        echo "NRV is $nrv::"
+        if [[ "$nv" -lt 12 && "$nv" -ne 0  && "$nrv" != 1 ]]; then
             if [[ "$NODE_VERSION" == "" ]]; then
                 echo "Nodejs $nv too old and new not specified - exiting" | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 echo "  Node-RED v2 no longer supports Nodejs $nv.  Please update."

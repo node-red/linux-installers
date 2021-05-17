@@ -34,7 +34,7 @@ Options:
   --confirm-pi      confirm installation of PI specific nodes without asking confirmation
   --skip-pi         skip installing PI specific nodes without asking confirmation
   --restart         restart service if install succeeds
-  --update-nodes    run npm update on existing installed nodes
+  --update-nodes    run npm update on existing installed nodes (within scope of package.json)
   --nodered-version if not set, the latest version is used - e.g. --nodered-version="1.3.4"
   --node14          if set, forces install of major version of nodejs 14 LTS
   --node12          if set, forces install of major version of nodejs 12 LTS
@@ -186,6 +186,53 @@ case $yn in
         cd "$NODERED_HOME" || exit 1
         clear
         echo -e "\nRunning Node-RED $EXTRAW for user $USER at $HOME on $MYOS\n"
+
+        nv=0
+        nv2=""
+        nrv=`echo $NODERED_VERSION | cut -d "." -f1`
+        if nov=$(node -v 2>/dev/null); then :; else rc="ERR"; fi
+        if npv=$(npm -v 2>/dev/null); then :; else rc="ERR"; fi
+        ndeb=$(apt-cache policy nodejs | grep Installed | awk '{print $2}')
+        if [[ -x "$(command -v node)" ]]; then
+            nv=`node -v | cut -d "." -f1 | cut -d "v" -f2`
+            nv2=`node -v`
+            # nv2=`apt list nodejs 2>/dev/null | grep dfsg | cut -d ' ' -f 2 | cut -d '-' -f 1`
+            echo "Already have nodejs $nv2" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        fi
+        # ensure ~/.config dir is owned by the user
+        echo "Now install nodejs" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        sudo chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.config/
+
+        echo "OLD nodejs "$nv" ::" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        echo "NEW nodejs "$NODE_VERSION" ::" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+
+        if [[ "$nv" -lt 12 && "$nv" -ne 0  && "$nrv" != 1 && "$nrv" != "" ]]; then
+        echo "NRV is $nrv::"
+            if [[ "$NODE_VERSION" == "" ]]; then
+                echo "Nodejs $nv too old and new not specified - exiting" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                echo "  Node-RED v2 no longer supports Nodejs $nv.  Please update."
+                echo "  "
+                echo "  You can force an install of node 12 or 14 by using the --node12 or --node14 parameter"
+                echo "  However doing so may break some nodes that may need re-installing manually."
+                echo "  Generally it is recommended to upgrade all nodes to their latest versions before upgrading."
+                echo "  "
+                if [[ "$npv" != "" ]]; then
+                    echo "Checking for outdated nodes in $PWD"
+                    npm --silent outdated
+                fi
+                echo "  "
+                echo "  Please backup your installation and flows before upgrading."
+                echo "  "
+                if ! sudo grep -q BCM2 /proc/cpuinfo; then
+                    echo "  Note: not all embedded hardware can be updated via this method - please check before proceeding."
+                    echo "  "
+                fi
+                echo "  Exiting now."
+                exit 2
+            fi
+            echo "Installing nodejs "$NODE_VERSION" over "$nv" ." | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        fi
+
         time1=$(date)
         echo "" | sudo tee -a /var/log/nodered-install.log >>/dev/null
         echo "***************************************" | sudo tee -a /var/log/nodered-install.log >>/dev/null
@@ -224,29 +271,7 @@ case $yn in
         sudo rm -rf /usr/lib/node_modules/node-red* /usr/bin/node-red* 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
         echo -ne '  Remove old version of Node-RED      \033[1;32m\u2714\033[0m\r\n'
 
-        nv=0
-        nv2=""
-        ndeb=$(apt-cache policy nodejs | grep Installed | awk '{print $2}')
-        if [[ -x "$(command -v node)" ]]; then
-            nv=`node -v | cut -d "." -f1 | cut -d "v" -f2`
-            nv2=`node -v`
-            # nv2=`apt list nodejs 2>/dev/null | grep dfsg | cut -d ' ' -f 2 | cut -d '-' -f 1`
-            echo "Already have nodejs $nv2" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-        fi
-        # ensure ~/.config dir is owned by the user
-        echo "Now install nodejs" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-        sudo chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.config/
-
-        echo "OLD nodejs "$nv" ::" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-        echo "NEW nodejs "$NODE_VERSION" ::" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-
-        if [[ "$nv" -lt 12 ]]; then
-            if [[ "$NODE_VERSION" == "" ]]; then
-                NODE_VERSION="14"
-            fi
-            echo "Installing nodejs "$NODE_VERSION" over "$nv" ." | sudo tee -a /var/log/nodered-install.log >>/dev/null
-        fi
-        if [[ "$NODE_VERSION" == "" ]]; then
+        if [[ "$NODE_VERSION" == "" && "$nv" -ne 0 ]]; then
             CHAR="-"
             echo -ne "  Node option not specified           :  --node12 or --node14\n"
             echo -ne "  Leave existing Node.js              :"
@@ -257,6 +282,7 @@ case $yn in
             else
                 tgtl=$tgtl14
                 tgta=$tgta14
+                NODE_VERSION="14"
             fi
             # maybe remove Node.js - or upgrade if nodesource.list exists
             if [[ "$(uname -m)" =~ "i686" ]]; then
@@ -274,7 +300,7 @@ case $yn in
             elif uname -m | grep -q armv6l ; then
                 sudo apt remove -y nodejs nodejs-legacy npm 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 sudo rm -rf /etc/apt/sources.d/nodesource.list /usr/lib/node_modules/npm*
-                echo -ne "  Remove old version of Node.js       $TICK\r\n"
+                echo -ne "  Remove old version of Node.js       $TICK   $nv2\r\n"
                 echo -ne "  Install Node.js for Armv6           \r"
                 # f=$(curl -sL https://nodejs.org/download/release/latest-dubnium/ | grep "armv6l.tar.gz" | cut -d '"' -f 2)
                 # curl -sL -o node.tgz https://nodejs.org/download/release/latest-dubnium/$f 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
@@ -321,14 +347,14 @@ case $yn in
                     sudo rm -rf /usr/local/lib/node_modules/node-red* /usr/lib/node_modules/node-red* 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 fi
                 sudo apt -y autoremove 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-                echo -ne "  Remove old version of Node.js       \033[1;32m\u2714\033[0m\r\n"
+                echo -ne "  Remove old version of Node.js       \033[1;32m\u2714\033[0m   $nv2\r\n"
                 echo "Grab the LTS bundle" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-                echo -ne "  Install Node.js LTS                 \r"
+                echo -ne "  Install Node.js $NODE_VERSION LTS              \r"
                 # use the official script to install for other debian platforms
                 sudo apt install -y curl 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 curl -sSL https://deb.nodesource.com/setup_$NODE_VERSION.x | sudo -E bash - 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 if sudo apt install -y nodejs 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
-                echo -ne "  Install Node.js LTS                 $CHAR"
+                echo -ne "  Install Node.js $NODE_VERSION LTS              $CHAR"
             fi
         fi
 
@@ -339,9 +365,10 @@ case $yn in
         if npv=$(npm -v 2>/dev/null); then :; else rc="ERR"; fi
         echo "Versions: node:$nov npm:$npv" | sudo tee -a /var/log/nodered-install.log >>/dev/null
         if [[ "$rc" == "" ]]; then
-            echo -ne "   Node $nov   Npm $npv\r\n"
+            echo -ne "    $nov   Npm $npv\r\n"
         else
-            echo -ne "\b$CROSS   Failed to install Node.js - Exit\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n"
+            if [[ "$npv" == "" ]]; then npv="missing"; fi
+            echo -ne "\b$CROSS   Bad install Node.js $nov or Npm $npv - Exit\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n"
             exit 2
         fi
         if [ "$EUID" == "0" ]; then npm config set unsafe-perm true &>/dev/null; fi
@@ -358,7 +385,7 @@ case $yn in
         echo -ne "  Clean npm cache                     $CHAR\r\n"
 
         # and install Node-RED
-        echo "Now install Node-RED" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        echo "Now install Node-RED $NODERED_VERSION" | sudo tee -a /var/log/nodered-install.log >>/dev/null
 
         NODERED_VERSION_SELECTION=""
         if [ -z ${NODERED_VERSION} ]; then
@@ -368,9 +395,11 @@ case $yn in
         fi
 
         if [[ "$GLOBAL" == "true" ]]; then
-            if sudo npm i -g --unsafe-perm --no-progress --no-update-notifier --no-audit --no-fund node-red@"$NODERED_VERSION_SELECTION" 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+            sudo npm i -g --unsafe-perm --no-progress --no-update-notifier --no-audit --no-fund node-red@"$NODERED_VERSION_SELECTION" 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; nri=${PIPESTATUS[0]}
+            if [[ $nri -eq 0 ]]; then CHAR=$TICK; else CHAR=$CROSS; fi
         else
-            if npm i -g --unsafe-perm --no-progress --no-update-notifier --no-audit --no-fund node-red@"$NODERED_VERSION_SELECTION" 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+            npm i -g --unsafe-perm --no-progress --no-update-notifier --no-audit --no-fund node-red@"$NODERED_VERSION_SELECTION" 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; nri=${PIPESTATUS[0]}
+            if [[ $nri -eq 0 ]]; then CHAR=$TICK; else CHAR=$CROSS; fi
         fi
         nrv=$(npm --no-progress --no-update-notifier --no-audit --no-fund -g ls node-red | grep node-red | cut -d '@' -f 2 | sudo tee -a /var/log/nodered-install.log) >>/dev/null 2>&1
         echo -ne "  Install Node-RED core               $CHAR   $nrv\r\n"
@@ -399,18 +428,20 @@ case $yn in
 
             # try to rebuild any already installed nodes
             CHAR="-"
+            if [[ "$NUPG" == "$TICK" ]]; then
+                echo "\nRunning npm rebuild" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                if npm rebuild --no-progress --no-update-notifier --no-fund 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+                echo -ne "  Npm rebuild existing nodes          $CHAR\r"
+            else
+                echo -ne "  Leave existing nodes                -\r"
+            fi
             if [[ "$UPDATENODES" == "y" ]]; then
                 echo "\nRunning npm update" | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 echo -ne "  Npm update existing nodes           "
                 if npm update --no-progress --no-update-notifier --no-fund 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
-                echo -ne "$CHAR\r\n"
-            elif [[ "$NUPG" == "$TICK" ]]; then
-                echo "\nRunning npm rebuild" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-                if npm rebuild --no-progress --no-update-notifier --no-fund 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
-                echo -ne "  Npm rebuild existing nodes          $CHAR\r\n"
-            else
-                echo -ne "  Leave existing nodes                - you may wish to run npm update manually\r\n"
+                echo -ne "$CHAR\r"
             fi
+            echo -ne "\n"
 
             CHAR="-"
             if [[ ! -z $EXTRANODES ]]; then

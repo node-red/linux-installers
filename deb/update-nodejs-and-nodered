@@ -211,6 +211,8 @@ case $yn in
                 echo "Nodejs $nv too old and new not specified - exiting" | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 echo "  Node-RED v2 no longer supports Nodejs $nv.  Please update."
                 echo "  "
+                echo "  You can use the old 1.x branch by specifying --nodered-version=1.x"
+                echo "  "
                 echo "  You can force an install of node 12 or 14 by using the --node12 or --node14 parameter"
                 echo "  However doing so may break some nodes that may need re-installing manually."
                 echo "  Generally it is recommended to upgrade all nodes to their latest versions before upgrading."

@@ -366,7 +366,7 @@ case $yn in
         if npv=$(npm -v 2>/dev/null); then :; else rc="ERR"; fi
         echo "Versions: node:$nov npm:$npv" | sudo tee -a /var/log/nodered-install.log >>/dev/null
         if [[ "$rc" == "" ]]; then
-            echo -ne "    $nov   Npm $npv\r\n"
+            echo -ne "   $nov   Npm $npv\r\n"
         else
             if [[ "$npv" == "" ]]; then npv="missing"; fi
             echo -ne "\b$CROSS   Bad install Node.js $nov or Npm $npv - Exit\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n"

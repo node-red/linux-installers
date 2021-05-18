@@ -200,18 +200,17 @@ case $yn in
             echo "Already have nodejs $nv2" | sudo tee -a /var/log/nodered-install.log >>/dev/null
         fi
         # ensure ~/.config dir is owned by the user
-        echo "Now install nodejs" | sudo tee -a /var/log/nodered-install.log >>/dev/null
         sudo chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.config/
 
-        echo "OLD nodejs "$nv" ::" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-        echo "NEW nodejs "$NODE_VERSION" ::" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        echo "OLD nodejs "$nv" :" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        echo "NEW nodejs "$NODE_VERSION" :" | sudo tee -a /var/log/nodered-install.log >>/dev/null
 
         if [[ "$nv" -lt 12 && "$nv" -ne 0  && "$nrv" != 1 ]]; then
             if [[ "$NODE_VERSION" == "" ]]; then
                 echo "Nodejs $nv too old and new not specified - exiting" | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 echo "  Node-RED v2 no longer supports Nodejs $nv.  Please update."
                 echo "  "
-                echo "  You can use the old 1.x branch by specifying --nodered-version=1.x"
+                echo "  You can use the old v1 branch by specifying --nodered-version=1.*"
                 echo "  "
                 echo "  You can force an install of node 12 or 14 by using the --node12 or --node14 parameter"
                 echo "  However doing so may break some nodes that may need re-installing manually."
@@ -274,7 +273,7 @@ case $yn in
 
         if [[ "$NODE_VERSION" == "" && "$nv" -ne 0 ]]; then
             CHAR="-"
-            echo -ne "  Node option not specified           :  --node12 or --node14\n"
+            echo -ne "  Node option not specified           :   --node12 or --node14\n"
             echo -ne "  Leave existing Node.js              :"
         else
             if [[ "$NODE_VERSION" == "12" ]]; then
@@ -430,14 +429,14 @@ case $yn in
             # try to rebuild any already installed nodes
             CHAR="-"
             if [[ "$NUPG" == "$TICK" ]]; then
-                echo "\nRunning npm rebuild" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                echo -ne "Running npm rebuild\r\n" | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 if npm rebuild --no-progress --no-update-notifier --no-fund 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
                 echo -ne "  Npm rebuild existing nodes          $CHAR\r"
             else
                 echo -ne "  Leave existing nodes                -\r"
             fi
             if [[ "$UPDATENODES" == "y" ]]; then
-                echo "\nRunning npm update" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                echo -ne "Running npm update\r\n" | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 echo -ne "  Npm update existing nodes           "
                 if npm update --no-progress --no-update-notifier --no-fund 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
                 echo -ne "$CHAR\r"

@@ -419,6 +419,7 @@ case $yn in
         mkdir -p "$NODERED_HOME/.node-red/node_modules"
         sudo chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.node-red/ 2>&1 >>/dev/null
         pushd "$NODERED_HOME/.node-red" 2>&1 >>/dev/null
+            mv npm-shrinkwrap.json npm-shrinkwrap.bak 2>&1 >>/dev/null
             npm config set update-notifier false 2>&1 >>/dev/null
             if [ ! -f "package.json" ]; then
                 echo '{' > package.json

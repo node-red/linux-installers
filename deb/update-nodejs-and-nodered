@@ -144,12 +144,11 @@ if [[ "$(uname)" != "Darwin" ]]; then
 if curl -I https://registry.npmjs.org/@node-red/util  >/dev/null 2>&1; then
 echo -e '\033]2;'Node-RED update'\007'
 echo " "
-echo "This script will remove versions of Node.js prior to version 12.x, and Node-RED and"
-echo "if necessary replace them with Node.js 12.x LTS (erbium) and the latest Node-RED from Npm."
+echo "This script checks the version of node.js installed is 12 or greater. It will try to"
+echo "install node 14 if none is found. It can optionally install node 12 LTS or 14 LTS for you."
 echo " "
-echo "It also moves any Node-RED nodes that are globally installed into your user"
-echo "~/.node-red/node_modules directory, and adds them to your package.json, so that"
-echo "you can manage them with the palette manager."
+echo "If necessary it will then remove the old core of Node-RED, before then installing the latest"
+echo "version. You can also optionally specify the version required."
 echo " "
 echo "It also tries to run 'npm rebuild' to refresh any extra nodes you have installed"
 echo "that may have a native binary component. While this normally works ok, you need"
@@ -158,6 +157,8 @@ echo " "
 echo "To do all this it runs commands as root - please satisfy yourself that this will"
 echo "not damage your Pi, or otherwise compromise your configuration."
 echo "If in doubt please backup your SD card first."
+echo " "
+echo "See the optional parameters by re-running this command with --help"
 echo " "
 if [[ -e $HOME/.nvm ]]; then
     echo -ne '\033[1mNOTE:\033[0m We notice you are using \033[38;5;88mnvm\033[0m. Please ensure it is running the current LTS version.\n'
@@ -419,7 +420,6 @@ case $yn in
         mkdir -p "$NODERED_HOME/.node-red/node_modules"
         sudo chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.node-red/ 2>&1 >>/dev/null
         pushd "$NODERED_HOME/.node-red" 2>&1 >>/dev/null
-            mv npm-shrinkwrap.json npm-shrinkwrap.bak 2>&1 >>/dev/null
             npm config set update-notifier false 2>&1 >>/dev/null
             if [ ! -f "package.json" ]; then
                 echo '{' > package.json

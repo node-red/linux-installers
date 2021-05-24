@@ -107,6 +107,28 @@ if [ $# -gt 0 ]; then
   done
 fi
 
+# helper function to test for existance of node and npm
+function HAS_NODE {
+    if [ -x "$(command -v node)" ]; then return 0; else return 1; fi
+}
+function HAS_NPM {
+    if [ -x "$(command -v npm)" ]; then return 0; else return 1; fi
+}
+
+# check for apt and systemctrl (set flags for later use and log if not found)
+if [ -x "$(command -v apt)" ]; then 
+    APTOK=true; 
+else
+    APTOK=false
+    echo "apt not found. Node/npm install will be skipped" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+fi
+if [ -x "$(command -v apt)" ]; then 
+    SYSTEMDOK=true; 
+else
+    SYSTEMDOK=false
+    echo "systemctl not found. shortcuts/services setup will be skipped" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+fi
+
 echo -ne "\033[2 q"
 if [[ -e /mnt/dietpi_userdata ]]; then
     echo -ne "\n\033[1;32mDiet-Pi\033[0m detected - only going to add the  \033[0;36mnode-red-start, -stop, -log\033[0m  commands.\n"

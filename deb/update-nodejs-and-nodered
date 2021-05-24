@@ -220,10 +220,24 @@ case $yn in
         nv=0
         nv2=""
         nrv=`echo $NODERED_VERSION | cut -d "." -f1`
-        if nov=$(node -v 2>/dev/null); then :; else rc="ERR"; fi
-        if npv=$(npm -v 2>/dev/null); then :; else rc="ERR"; fi
-        ndeb=$(apt-cache policy nodejs | grep Installed | awk '{print $2}')
-        if [[ -x "$(command -v node)" ]]; then
+
+        if [[ "$APTOK" == "false" ]]; then
+            if HAS_NODE && HAS_NPM; then
+                : # node and npm is installed, we can continue :)
+            else
+                if HAS_NODE; then :; else echo -en "\b$CROSS   MISSING: nodejs\r\n"; fi
+                if HAS_NPM; then :; else echo -en "\b$CROSS   MISSING: npm\r\n"; fi
+                echo -en "\b$CROSS   MISSING: apt"
+                echo -e "\r\n\r\nThis script uses apt to install nodejs and npm.\n"
+                echo -e "You can install nodejs and npm manually then run the script again to continue.\r\n\r\n"
+                exit 2
+            fi
+        fi
+
+        if [[ "$APTOK" == "true" ]]; then
+            ndeb=$(apt-cache policy nodejs | grep Installed | awk '{print $2}')
+        fi
+        if HAS_NODE; then
             nv=`node -v | cut -d "." -f1 | cut -d "v" -f2`
             nv2=`node -v`
             # nv2=`apt list nodejs 2>/dev/null | grep dfsg | cut -d ' ' -f 2 | cut -d '-' -f 1`
@@ -295,13 +309,18 @@ case $yn in
         echo "Found global nodes: $GLOBALNODES :" | sudo tee -a /var/log/nodered-install.log >>/dev/null
 
         # remove any old node-red installs or files
-        sudo apt remove -y nodered 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        if [[ "$APTOK" == "true" ]]; then
+            sudo apt remove -y nodered 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        fi
         # sudo apt remove -y node-red-update 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
         sudo rm -rf /usr/local/lib/node_modules/node-red* /usr/local/lib/node_modules/npm /usr/local/bin/node-red* /usr/local/bin/node /usr/local/bin/npm 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
         sudo rm -rf /usr/lib/node_modules/node-red* /usr/bin/node-red* 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
         echo -ne '  Remove old version of Node-RED      \033[1;32m\u2714\033[0m\r\n'
 
-        if [[ "$NODE_VERSION" == "" && "$nv" -ne 0 ]]; then
+        if [[ "$APTOK" == "false" ]]; then
+            echo -ne "  Node option not possible            :   Skipped - apt not found\n"
+            echo -ne "  Leave existing Node.js              :"
+        elif [[ "$NODE_VERSION" == "" && "$nv" -ne 0 ]]; then
             CHAR="-"
             echo -ne "  Node option not specified           :   --node12 or --node14\n"
             echo -ne "  Leave existing Node.js              :"
@@ -490,40 +509,45 @@ case $yn in
             sudo chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.npm 2>&1 >>/dev/null
         fi
 
-        # add the shortcut and start/stop/log scripts to the menu
-        echo "Now add the shortcut and start/stop/log scripts to the menu" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-        sudo mkdir -p /usr/bin
-        if curl -f https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-icon.svg >/dev/null 2>&1; then
-            sudo curl -sL -o /usr/share/icons/hicolor/scalable/apps/node-red-icon.svg https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-icon.svg 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-            sudo curl -sL -o /usr/share/applications/Node-RED.desktop https://raw.githubusercontent.com/node-red/linux-installers/master/resources/Node-RED.desktop 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-            sudo curl -sL -o /usr/bin/node-red-start https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-start 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-            sudo curl -sL -o /usr/bin/node-red-stop https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-stop 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-            sudo curl -sL -o /usr/bin/node-red-restart https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-restart 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-            sudo curl -sL -o /usr/bin/node-red-reload https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-reload 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-            sudo curl -sL -o /usr/bin/node-red-log https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-log 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-            sudo curl -sL -o /etc/logrotate.d/nodered https://raw.githubusercontent.com/node-red/linux-installers/master/resources/nodered.rotate 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-            sudo chmod +x /usr/bin/node-red-start
-            sudo chmod +x /usr/bin/node-red-stop
-            sudo chmod +x /usr/bin/node-red-restart
-            sudo chmod +x /usr/bin/node-red-reload
-            sudo chmod +x /usr/bin/node-red-log
-            echo -ne "  Add shortcut commands               $TICK\r\n"
-        else
-            echo -ne "  Add shortcut commands               $CROSS\r\n"
-        fi
+        if [[ "$SYSTEMDOK" == "true" ]]; then 
+            # add the shortcut and start/stop/log scripts to the menu
+            echo "Now add the shortcut and start/stop/log scripts to the menu" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+            sudo mkdir -p /usr/bin
+            if curl -f https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-icon.svg >/dev/null 2>&1; then
+                sudo curl -sL -o /usr/share/icons/hicolor/scalable/apps/node-red-icon.svg https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-icon.svg 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                sudo curl -sL -o /usr/share/applications/Node-RED.desktop https://raw.githubusercontent.com/node-red/linux-installers/master/resources/Node-RED.desktop 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                sudo curl -sL -o /usr/bin/node-red-start https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-start 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                sudo curl -sL -o /usr/bin/node-red-stop https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-stop 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                sudo curl -sL -o /usr/bin/node-red-restart https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-restart 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                sudo curl -sL -o /usr/bin/node-red-reload https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-reload 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                sudo curl -sL -o /usr/bin/node-red-log https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-log 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                sudo curl -sL -o /etc/logrotate.d/nodered https://raw.githubusercontent.com/node-red/linux-installers/master/resources/nodered.rotate 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                sudo chmod +x /usr/bin/node-red-start
+                sudo chmod +x /usr/bin/node-red-stop
+                sudo chmod +x /usr/bin/node-red-restart
+                sudo chmod +x /usr/bin/node-red-reload
+                sudo chmod +x /usr/bin/node-red-log
+                echo -ne "  Add shortcut commands               $TICK\r\n"
+            else
+                echo -ne "  Add shortcut commands               $CROSS\r\n"
+            fi
 
-        # add systemd script and configure it for $USER
-        echo "Now add systemd script and configure it for $USER" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-        if sudo curl -sL -o /lib/systemd/system/nodered.service https://raw.githubusercontent.com/node-red/linux-installers/master/resources/nodered.service 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
-        # set the memory, User Group and WorkingDirectory in nodered.service
-        if [ $(cat /proc/meminfo | grep MemTotal | cut -d ":" -f 2 | cut -d "k" -f 1 | xargs) -lt 894000 ]; then mem="256"; else mem="512"; fi
-        if [ $(cat /proc/meminfo | grep MemTotal | cut -d ":" -f 2 | cut -d "k" -f 1 | xargs) -gt 1894000 ]; then mem="1024"; fi
-        if [ $(cat /proc/meminfo | grep MemTotal | cut -d ":" -f 2 | cut -d "k" -f 1 | xargs) -gt 3894000 ]; then mem="2048"; fi
-        # if [ $(cat /proc/meminfo | grep MemTotal | cut -d ":" -f 2 | cut -d "k" -f 1 | xargs) -gt 7894000 ]; then mem="4096"; fi
-        sudo sed -i 's#=512#='$mem'#;' /lib/systemd/system/nodered.service
-        sudo sed -i 's#^User=pi#User='$NODERED_USER'#;s#^Group=pi#Group='$NODERED_GROUP'#;s#^WorkingDirectory=/home/pi#WorkingDirectory='$NODERED_HOME'#;' /lib/systemd/system/nodered.service
-        sudo systemctl daemon-reload 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-        echo -ne "  Update systemd script               $CHAR\r\n"
+            # add systemd script and configure it for $USER
+            echo "Now add systemd script and configure it for $USER" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+            if sudo curl -sL -o /lib/systemd/system/nodered.service https://raw.githubusercontent.com/node-red/linux-installers/master/resources/nodered.service 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+            # set the memory, User Group and WorkingDirectory in nodered.service
+            if [ $(cat /proc/meminfo | grep MemTotal | cut -d ":" -f 2 | cut -d "k" -f 1 | xargs) -lt 894000 ]; then mem="256"; else mem="512"; fi
+            if [ $(cat /proc/meminfo | grep MemTotal | cut -d ":" -f 2 | cut -d "k" -f 1 | xargs) -gt 1894000 ]; then mem="1024"; fi
+            if [ $(cat /proc/meminfo | grep MemTotal | cut -d ":" -f 2 | cut -d "k" -f 1 | xargs) -gt 3894000 ]; then mem="2048"; fi
+            # if [ $(cat /proc/meminfo | grep MemTotal | cut -d ":" -f 2 | cut -d "k" -f 1 | xargs) -gt 7894000 ]; then mem="4096"; fi
+            sudo sed -i 's#=512#='$mem'#;' /lib/systemd/system/nodered.service
+            sudo sed -i 's#^User=pi#User='$NODERED_USER'#;s#^Group=pi#Group='$NODERED_GROUP'#;s#^WorkingDirectory=/home/pi#WorkingDirectory='$NODERED_HOME'#;' /lib/systemd/system/nodered.service
+            sudo systemctl daemon-reload 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+            echo -ne "  Update systemd script               $CHAR\r\n"
+        else
+            echo -ne "  Add shortcut commands               :   Skipped - systemd not found\r\n"            
+            echo -ne "  Update systemd script               :   Skipped - systemd not found\r\n"
+        fi
         sudo ln -s $(which python3) /usr/bin/python 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
 
         # remove unneeded large sentiment library to save space and load time
@@ -556,17 +580,27 @@ case $yn in
             sudo systemctl restart nodered
             echo -ne "\033[1mRestarted  \033[38;5;88mNode-RED\033[0m\r\n"
         else
-            if [[ "$GLOBAL" == "true" ]]; then
-                echo -ne "You can now start Node-RED with the command  \033[0;36mnode-red-start\033[0m\r\n"
-                echo -ne "  or using the icon under   Menu / Programming / Node-RED\r\n"
+            if [[ "$GLOBAL" == "true" ]] ; then
+                if [[ "$SYSTEMDOK" == "true" ]]; then 
+                    echo -ne "You can now start Node-RED with the command  \033[0;36mnode-red-start\033[0m\r\n"
+                    echo -ne "  or using the icon under   Menu / Programming / Node-RED\r\n"
+                else
+                    echo -ne "You can now start Node-RED with the command  \033[0;36mnode-red\033[0m\r\n"
+                fi
             else
                 echo -ne "You can now start Node-RED with the command  \033[0;36m./node-red\033[0m\r\n"
             fi
         fi
         echo -ne "Then point your browser to \033[0;36mlocalhost:1880\033[0m or \033[0;36mhttp://{your_pi_ip-address}:1880\033[0m\r\n"
-        echo -ne "\r\nStarted  $time1  -  Finished  $(date)\r\n\r\n"
-        echo "Memory : $(free -h -t | grep Total | awk '{print $2}' | cut -d i -f 1)" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-        echo "Started  $time1  -  Finished  $(date)" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        echo -ne "\r\n"
+        if free -h -t >/dev/null 2>&1; then 
+            echo "Memory  : $(free -h -t | grep Total | awk '{print $2}' | cut -d i -f 1)" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        else 
+            echo "Mem     : $(free -m | grep Mem | awk '{print $2}' | cut -d i -f 1)Mb" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+            echo "Swap    : $(free -m | grep Swap | awk '{print $2}' | cut -d i -f 1)Mb" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        fi
+        echo "Started :  $time1 " | sudo tee -a /var/log/nodered-install.log 
+        echo "Finished:  $(date)" | sudo tee -a /var/log/nodered-install.log 
     ;;
     * )
         echo " "

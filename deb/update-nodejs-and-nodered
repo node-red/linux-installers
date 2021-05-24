@@ -462,7 +462,9 @@ case $yn in
             echo -ne "  Install extra Pi nodes              $CHAR\r\n"
 
         popd 2>&1 >>/dev/null
-        sudo chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.npm 2>&1 >>/dev/null
+        if [ -d "$NODERED_HOME/.npm" ]; then
+            sudo chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.npm 2>&1 >>/dev/null
+        fi
 
         # add the shortcut and start/stop/log scripts to the menu
         echo "Now add the shortcut and start/stop/log scripts to the menu" | sudo tee -a /var/log/nodered-install.log >>/dev/null

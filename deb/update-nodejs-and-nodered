@@ -374,12 +374,14 @@ case $yn in
         rc=""
         if nov=$(node -v 2>/dev/null); then :; else rc="ERR"; fi
         if npv=$(npm -v 2>/dev/null); then :; else rc="ERR"; fi
+        if [[ "$npv" == "" ]]; then npv="missing"; fi
+        if [[ "$nov" == "" ]]; then nov="missing"; fi
+
         echo "Versions: node:$nov npm:$npv" | sudo tee -a /var/log/nodered-install.log >>/dev/null
         if [[ "$rc" == "" ]]; then
             echo -ne "   $nov   Npm $npv\r\n"
         else
-            if [[ "$npv" == "" ]]; then npv="missing"; fi
-            echo -ne "\b$CROSS   Bad install Node.js $nov or Npm $npv - Exit\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n"
+            echo -ne "\b$CROSS   Bad install:  Node.js $nov  Npm $npv - Exit\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n"
             exit 2
         fi
         if [ "$EUID" == "0" ]; then npm config set unsafe-perm true &>/dev/null; fi

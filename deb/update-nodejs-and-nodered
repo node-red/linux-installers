@@ -116,14 +116,14 @@ function HAS_NPM {
 }
 
 # check for apt and systemctrl (set flags for later use and log if not found)
-if [ -x "$(command -v apt)" ]; then 
-    APTOK=true; 
+if [ -x "$(command -v apt)" ]; then
+    APTOK=true;
 else
     APTOK=false
     echo "apt not found. Node/npm install will be skipped" | sudo tee -a /var/log/nodered-install.log >>/dev/null
 fi
-if [ -x "$(command -v apt)" ]; then 
-    SYSTEMDOK=true; 
+if [ -x "$(command -v apt)" ]; then
+    SYSTEMDOK=true;
 else
     SYSTEMDOK=false
     echo "systemctl not found. shortcuts/services setup will be skipped" | sudo tee -a /var/log/nodered-install.log >>/dev/null
@@ -393,6 +393,7 @@ case $yn in
                 sudo dpkg -r nodejs 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 sudo dpkg -r node 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 sudo rm -rf /opt/nodejs 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                sudo rm -rf /usr/local/lib/nodejs* 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 sudo rm -f /usr/local/bin/node* 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 sudo rm -rf /usr/local/bin/npm* /usr/local/bin/npx* /usr/lib/node_modules/npm* 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 if [ "$npv" = "1" ]; then
@@ -418,7 +419,7 @@ case $yn in
         if [[ "$npv" == "" ]]; then npv="missing"; fi
         if [[ "$nov" == "" ]]; then nov="missing"; fi
 
-        echo "Versions: node:$nov npm:$npv" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        echo "\nVersions: node:$nov npm:$npv\n" | sudo tee -a /var/log/nodered-install.log >>/dev/null
         if [[ "$rc" == "" ]]; then
             echo -ne "   $nov   Npm $npv\r\n"
         else
@@ -509,7 +510,7 @@ case $yn in
             sudo chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.npm 2>&1 >>/dev/null
         fi
 
-        if [[ "$SYSTEMDOK" == "true" ]]; then 
+        if [[ "$SYSTEMDOK" == "true" ]]; then
             # add the shortcut and start/stop/log scripts to the menu
             echo "Now add the shortcut and start/stop/log scripts to the menu" | sudo tee -a /var/log/nodered-install.log >>/dev/null
             sudo mkdir -p /usr/bin
@@ -545,7 +546,7 @@ case $yn in
             sudo systemctl daemon-reload 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
             echo -ne "  Update systemd script               $CHAR\r\n"
         else
-            echo -ne "  Add shortcut commands               :   Skipped - systemd not found\r\n"            
+            echo -ne "  Add shortcut commands               :   Skipped - systemd not found\r\n"
             echo -ne "  Update systemd script               :   Skipped - systemd not found\r\n"
         fi
         sudo ln -s $(which python3) /usr/bin/python 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
@@ -581,7 +582,7 @@ case $yn in
             echo -ne "\033[1mRestarted  \033[38;5;88mNode-RED\033[0m\r\n"
         else
             if [[ "$GLOBAL" == "true" ]] ; then
-                if [[ "$SYSTEMDOK" == "true" ]]; then 
+                if [[ "$SYSTEMDOK" == "true" ]]; then
                     echo -ne "You can now start Node-RED with the command  \033[0;36mnode-red-start\033[0m\r\n"
                     echo -ne "  or using the icon under   Menu / Programming / Node-RED\r\n"
                 else
@@ -593,14 +594,14 @@ case $yn in
         fi
         echo -ne "Then point your browser to \033[0;36mlocalhost:1880\033[0m or \033[0;36mhttp://{your_pi_ip-address}:1880\033[0m\r\n"
         echo -ne "\r\n"
-        if free -h -t >/dev/null 2>&1; then 
+        if free -h -t >/dev/null 2>&1; then
             echo "Memory  : $(free -h -t | grep Total | awk '{print $2}' | cut -d i -f 1)" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-        else 
+        else
             echo "Mem     : $(free -m | grep Mem | awk '{print $2}' | cut -d i -f 1)Mb" | sudo tee -a /var/log/nodered-install.log >>/dev/null
             echo "Swap    : $(free -m | grep Swap | awk '{print $2}' | cut -d i -f 1)Mb" | sudo tee -a /var/log/nodered-install.log >>/dev/null
         fi
-        echo "Started :  $time1 " | sudo tee -a /var/log/nodered-install.log 
-        echo "Finished:  $(date)" | sudo tee -a /var/log/nodered-install.log 
+        echo "Started :  $time1 " | sudo tee -a /var/log/nodered-install.log
+        echo "Finished:  $(date)" | sudo tee -a /var/log/nodered-install.log
     ;;
     * )
         echo " "

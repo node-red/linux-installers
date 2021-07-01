@@ -252,19 +252,21 @@ case $yn in
         if [[ "$nv" -lt 12 && "$nv" -ne 0  && "$nrv" != 1 ]]; then
             if [[ "$NODE_VERSION" == "" ]]; then
                 echo "Nodejs $nv too old and new version not specified - exiting" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                echo "Nodejs $nv is no longer supported."
+                echo '  You can update to the latest Node-RED 1.x version by adding  --nodered-version="1.3.5"  to the install command.'
                 # echo "  Node-RED v2 no longer supports Nodejs $nv.  Please update."
                 # echo "  "
                 # echo "  You can use the old v1 branch by specifying --nodered-version=1.*"
                 echo "  "
-                echo "  You can force an install of node 12 or 14 by using the --node12 or --node14 parameter"
+                echo "  Or you can force an install of node 12 or 14 by using the --node12 or --node14 parameter"
                 echo "  However doing so may break some nodes that may need re-installing manually."
                 echo "  Generally it is recommended to upgrade all nodes to their latest versions before upgrading."
                 echo "  "
                 if [[ "$npv" != "" ]]; then
                     echo "Checking for outdated nodes in $PWD"
                     npm --silent outdated
+                    echo "  "
                 fi
-                echo "  "
                 echo "  Please backup your installation and flows before upgrading."
                 echo "  "
                 if ! sudo grep -q BCM2 /proc/cpuinfo; then
@@ -419,7 +421,7 @@ case $yn in
         if [[ "$npv" == "" ]]; then npv="missing"; fi
         if [[ "$nov" == "" ]]; then nov="missing"; fi
 
-        echo "\nVersions: node:$nov npm:$npv\n" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        echo -ne "\nVersions: node:$nov npm:$npv\n" | sudo tee -a /var/log/nodered-install.log >>/dev/null
         if [[ "$rc" == "" ]]; then
             echo -ne "   $nov   Npm $npv\r\n"
         else

@@ -18,12 +18,12 @@
 # Node-RED Installer for DEB based systems
 
 umask 0022
-tgta12=12.22.1   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgta12=12.22.3   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 tgtl12=12.16.3   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta14=14.17.1   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
-tgtl14=14.17.1   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta16=16.4.0    # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
-tgtl16=16.4.0    # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
+tgta14=14.17.3   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgtl14=14.17.3   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
+tgta16=16.4.2    # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgtl16=16.4.2    # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 
 usage() {
   cat << EOL

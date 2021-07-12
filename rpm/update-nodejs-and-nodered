@@ -38,7 +38,8 @@ if [[ "$response" =~ ^([yY])+$ ]]; then
 fi
 
 if curl -f https://www.npmjs.com/package/node-red  >/dev/null 2>&1; then
-echo -e '\033]2;'Node-RED update'\007'
+host=`hostname`
+echo -e '\033]2;'$host : Node-RED update'\007'
 echo " "
 echo "This script will do an install of node.js, Node-RED and the service packages to auto-run Node-RED"
 echo " "
@@ -100,7 +101,7 @@ case $yn in
         sudo chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.config/
         echo "Now install nodejs" | sudo tee -a /var/log/nodered-install.log >>/dev/null
         if [ $MYOS = "fedora" ]; then
-            if sudo dnf module install -y nodejs:14 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+            if sudo dnf module install -y nodejs:14/default 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
         else
             if [ "$EUID" == "0" ]
             then
@@ -143,7 +144,7 @@ case $yn in
             if [ ! -f "package.json" ]; then
                 echo '{' > package.json
                 echo '  "name": "node-red-project",' >> package.json
-                echo '  "description": "A Node-RED Project",' >> package.json
+                echo '  "description": "initially created for you by Node-RED '$nrv'",' >> package.json
                 echo '  "version": "0.0.1",' >> package.json
                 echo '  "dependencies": {' >> package.json
                 echo '  }' >> package.json
@@ -197,7 +198,7 @@ case $yn in
         else
             echo -ne "  You can now start Node-RED with the command  \033[0;36m./node-red\033[0m\r\n"
         fi
-        echo -ne "  Then point your browser to \033[0;36mlocalhost:1880\033[0m or \033[0;36mhttp://{your_pi_ip-address}:1880\033[0m\r\n"
+        echo -ne "  Then point your browser to \033[0;36mlocalhost:1880\033[0m or \033[0;36mhttp://{your_ip-address}:1880\033[0m\r\n"
         echo -ne "\r\nStarted  $time1  -  Finished  $(date)\r\n\r\n"
         echo "Finished : "$time1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
     ;;

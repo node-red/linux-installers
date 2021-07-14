@@ -1,2 +1,2 @@
 #!/bin/bash
-sudo node-red-stop && sudo node-red-start
+node-red-stop && node-red-start

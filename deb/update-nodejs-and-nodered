@@ -164,7 +164,7 @@ fi
 if [[ "$(uname)" != "Darwin" ]]; then
 # if curl -f https://www.npmjs.com/package/node-red  >/dev/null 2>&1; then
 if curl -I https://registry.npmjs.org/@node-red/util  >/dev/null 2>&1; then
-echo -e '\033]2;'Node-RED update'\007'
+echo -e '\033]2;'$USER@`hostname`:  Node-RED update'\007'
 echo " "
 echo "This script checks the version of node.js installed is 12 or greater. It will try to"
 echo "install node 14 if none is found. It can optionally install node 12 LTS or 14 LTS for you."

@@ -14,7 +14,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-echo -e '\033]2;'Node-RED console'\007'
+echo -e '\033]2;'$USER@`hostname`:  Node-RED console'\007'
 if [[ $(which node-red-pi) ]]; then
     if [[ ! $(which npm) ]]; then
         echo -e "\033[0m                                                  \033[0m"

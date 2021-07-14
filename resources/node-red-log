@@ -8,6 +8,6 @@ while getopts ":n:" opt; do
     ;;
   esac
 done
-echo -e '\033]2;'Node-RED log'\007'
+echo -e '\033]2;'$USER@`hostname`: Node-RED log'\007'
 echo " "
 sudo journalctl -f -n $LINES -u nodered -o cat

@@ -239,6 +239,7 @@ case $yn in
         fi
         if HAS_NODE; then
             nv=`node -v | cut -d "." -f1 | cut -d "v" -f2`
+            nvs=`node -v | cut -d "." -f2`
             nv2=`node -v`
             # nv2=`apt list nodejs 2>/dev/null | grep dfsg | cut -d ' ' -f 2 | cut -d '-' -f 1`
             echo "Already have nodejs $nv2" | sudo tee -a /var/log/nodered-install.log >>/dev/null
@@ -248,6 +249,11 @@ case $yn in
 
         echo "OLD nodejs "$nv" :" | sudo tee -a /var/log/nodered-install.log >>/dev/null
         echo "NEW nodejs "$NODE_VERSION" :" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        # If older than version of 12.17 then force it to update to support es modules
+        if [[ "$nv" -eq 12 && "$nvs" -lt 17 ]]; then
+            nv=0
+            NODE_VERSION="12"
+        fi
 
         if [[ "$nv" -lt 12 && "$nv" -ne 0  && "$nrv" != 1 ]]; then
             if [[ "$NODE_VERSION" == "" ]]; then

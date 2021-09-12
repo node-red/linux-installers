@@ -142,6 +142,7 @@ echo "Architecture: armhf" | sudo tee -a control
 echo "Installed-Size: $SIZE" | sudo tee -a control
 #echo "Depends: nodejs (>= 8), python (>= 2.7)" | sudo tee -a control
 echo "Depends: nodejs (>= 10), npm (>= 5.8), python (>= 2.7)" | sudo tee -a control
+# echo "Depends: nodejs (>= 12), npm (>= 6.14), python (>= 2.7)" | sudo tee -a control
 echo "Homepage: http://nodered.org" | sudo tee -a control
 echo "Maintainer: Dave Conway-Jones <dceejay@gmail.com>" | sudo tee -a control
 echo "Description: Node-RED - low-code programming for event-driven applications" | sudo tee -a control

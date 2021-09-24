@@ -2,7 +2,7 @@
 
 Both of the following commands use sudo (root) access to install Node-RED globally (and nodejs if required). You may want to inspect them first to satisfy yourself as to the actions they take.
 
-### Debian, Ubuntu, Raspbian
+### Debian, Ubuntu, Raspberry Pi OS
 
 The command line for installing on a Debian based OS is:
 

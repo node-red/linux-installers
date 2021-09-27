@@ -1,6 +1,6 @@
-## For debian/raspbian:
+## For Debian/Raspberry Pi OS:
 
-If you are Chinese user, we suggest you to change your node-js offical mirror to Chinese mirror, 
+If you are Chinese user, we suggest you to change your node-js offical mirror to Chinese mirror,
 如果您在中国请使用国内镜像源获取更好的下载体验，
 
 run `curl -sL https://deb.nodesource.com/setup_12.x | sudo bash -` ,
@@ -24,10 +24,10 @@ Then run the install script as per the main README.md.
 
 ## For CentOS:
 
-If you are Chinese user, we suggest you to change your node-js offical mirror to Chinese mirror, 
+If you are Chinese user, we suggest you to change your node-js offical mirror to Chinese mirror,
 如果您在中国请使用国内镜像源获取更好的下载体验，
 
-visit `https://mirrors.tuna.tsinghua.edu.cn/nodesource/` and see which version do you need,  you can add its yum source list like this `rpm -ivh https://mirrors.tuna.tsinghua.edu.cn/nodesource/rpm_10.x/el/7/x86_64/nodesource-release-el7-1.noarch.rpm` 
+visit `https://mirrors.tuna.tsinghua.edu.cn/nodesource/` and see which version do you need,  you can add its yum source list like this `rpm -ivh https://mirrors.tuna.tsinghua.edu.cn/nodesource/rpm_10.x/el/7/x86_64/nodesource-release-el7-1.noarch.rpm`
 请找到适合您的rpm源安装包
 
 then edit yum source list `/etc/yum.repos.d/nodesource-el7.repo` like this:
@@ -58,7 +58,7 @@ also,you can change npm source`npm config set registry https://registry.npm.taob
 Then run the instal script as per the main README.md.
 
 
-refer: 
+refer:
 1.[Nodesource 镜像使用帮助](https://mirror.tuna.tsinghua.edu.cn/help/nodesource/)
 2.[淘宝 NPM 镜像](https://developer.aliyun.com/mirror/NPM?from=tnpm)
 3.https://github.com/nodesource/distributions

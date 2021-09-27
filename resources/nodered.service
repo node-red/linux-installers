@@ -13,6 +13,8 @@ Group=pi
 WorkingDirectory=/home/pi
 
 Environment="NODE_OPTIONS=--max_old_space_size=512"
+# define an optional environment file in Node-RED's user directory to set custom variables externally
+EnvironmentFile=-/home/pi/.node-red/environment
 # uncomment and edit next line if you need an http proxy
 #Environment="HTTP_PROXY=my.httpproxy.server.address"
 # uncomment the next line for a more verbose log output

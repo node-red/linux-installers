@@ -359,6 +359,15 @@ case $yn in
                 rm /tmp/node.tgz 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 echo -ne "  Install Node.js for i686            $CHAR"
             elif uname -m | grep -q armv6l ; then
+                if [ "$NODE_VERSION" == "16" ]; then
+                    echo "                                                    "
+                    echo "                                                    "
+                    echo "Sorry - Ndde 16 is not currently supported on Armv6."
+                    echo "Please select either --node14 or --node12           "
+                    echo "                                                    "
+                    echo "                                                    "
+                    exit 1
+                fi
                 sudo apt remove -y nodejs nodejs-legacy npm 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 sudo rm -rf /etc/apt/sources.d/nodesource.list /usr/lib/node_modules/npm*
                 echo -ne "  Remove old version of Node.js       $TICK   $nv2\r\n"

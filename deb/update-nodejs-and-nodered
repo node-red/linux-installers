@@ -136,9 +136,9 @@ if [[ -e /mnt/dietpi_userdata ]]; then
     echo -ne "Use the  \033[0;36mdietpi-software\033[0m  command to un-install and re-install \033[38;5;88mNode-RED\033[0m.\n"
     echo "journalctl -f -n 25 -u node-red -o cat" > /usr/bin/node-red-log
     chmod +x /usr/bin/node-red-log
-    echo "dietpi-services stop node-red" > /usr/bin/node-red-stop
+    echo "systemctl stop node-red" > /usr/bin/node-red-stop
     chmod +x /usr/bin/node-red-stop
-    echo "dietpi-services start node-red" > /usr/bin/node-red-start
+    echo "systemctl start node-red" > /usr/bin/node-red-start
     echo "journalctl -f -n 0 -u node-red -o cat" >> /usr/bin/node-red-start
     chmod +x /usr/bin/node-red-start
 else

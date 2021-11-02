@@ -10,12 +10,25 @@ The command line for installing on a Debian based OS is:
 bash <(curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/deb/update-nodejs-and-nodered)
 ```
 
+you should ensure you have the build tools installed if you are going to install extra nodes.
+
+```
+sudo apt install build-essential
+```
+
+
 ### Red Hat, Fedora, CentOS, Oracle Linux
 
 The command line for installing on a RPM based OS is:
 
 ```
 bash <(curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/rpm/update-nodejs-and-nodered)
+```
+
+you should ensure you have the development tools installed if you are going to install extra nodes.
+
+```
+dnf groupinstall "Development Tools"
 ```
 
 **Note**: This script will optionally add a firewall rule that adds port 1880 to the public zone. On a default install this should allow access to Node-RED from outside of the local machine. The default is not to do this.

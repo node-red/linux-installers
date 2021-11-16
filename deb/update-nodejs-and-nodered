@@ -623,6 +623,14 @@ case $yn in
         fi
         echo "Started :  $time1 " | sudo tee -a /var/log/nodered-install.log
         echo "Finished:  $(date)" | sudo tee -a /var/log/nodered-install.log
+
+        file=/home/$NODERED_USER/.node-red/settings.js
+        if [ ! -f $file ]; then
+            echo " "
+            echo -e "You may want to run   \033[0;36mnode-red admin init\033[0m"
+            echo "to configure your initial options and settings."
+            echo " "
+        fi
     ;;
     * )
         echo " "

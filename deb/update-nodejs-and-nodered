@@ -593,6 +593,7 @@ case $yn in
             sudo setcap cap_net_raw+eip $(eval readlink -f `which node`) 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
             sudo setcap cap_net_raw=ep /bin/ping 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
             sudo adduser $NODERED_USER gpio 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+            sudo apt install -y python3-rpi.gpio 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
         fi
 
         echo -ne "\r\n\r\n\r\n"

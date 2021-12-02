@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2016,2021 JS Foundation and other contributors, https://js.foundation/
+# Copyright 2016,2021 OpenJS Foundation and other contributors, https://openjsf.org/
 # Copyright 2015,2016 IBM Corp.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,12 +26,12 @@ sudo rm -rf /home/pi/.npm /home/pi/.node-gyp
 sudo rm -rf /root/.npm /root/.node-gyp
 sudo rm -rf /etc/apt/sources.list.d/nodesource.list
 # can remove next line if already updated....
-sudo apt update -y
+sudo apt-get update
 
-# sudo apt install nodejs nodejs-legacy npm lintian
+# sudo apt-get install nodejs nodejs-legacy npm lintian
 
-sudo apt install -y build-essential nodejs npm lintian
-sudo npm install -g --unsafe-perm npm@6
+sudo apt-get install -y build-essential nodejs npm lintian
+# sudo npm install -g --unsafe-perm npm@6
 # Get node.js 4.8.2 to match stretch ... for now
 #wget https://nodejs.org/download/release/v4.8.2/node-v4.8.2-linux-armv6l.tar.gz -O /tmp/node.tgz
 #sudo tar -zxf /tmp/node.tgz --strip-components=1 -C /usr
@@ -44,7 +44,7 @@ echo "   Node" $(node -v)
 echo "   Npm   "$(npm -v)
 echo "Now installing Node-RED - please wait - can take 25 mins on a Pi 1"
 echo "   Node-RED "$(npm show node-red version)
-sudo npm i -g --unsafe-perm --no-progress --production node-red@1.*
+sudo npm i -g --unsafe-perm --no-progress --production node-red@2.*
 
 # Remove existing serialport
 sudo rm -rf /usr/local/lib/node_modules/node-red/nodes/node_modules/node-red-node-serialport
@@ -53,7 +53,7 @@ sudo rm -rf /usr/local/lib/node_modules/node-red/nodes/node_modules/node-red-nod
 pushd /usr/local/lib/node_modules/node-red/node_modules
 sudo find . -type d -name test -exec rm -r {} \;
 sudo find . -type d -name doc -exec rm -r {} \;
-sudo find . -type d -name example* -exec rm -r {} \;
+# sudo find . -type d -name example -exec rm -r {} \;
 sudo find . -type d -name sample -exec rm -r {} \;
 sudo find . -type d -iname benchmark* -exec rm -r {} \;
 sudo find . -type d -iname .nyc_output -exec rm -r {} \;

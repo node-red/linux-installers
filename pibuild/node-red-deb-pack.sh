@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2016,2021 JS Foundation and other contributors, https://js.foundation/
+# Copyright 2016,2021 OpenJS Foundation and other contributors, https://openjsf.org/
 # Copyright 2015,2016 IBM Corp.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,7 @@
 # limitations under the License.
 
 echo ""
-VER=$(node-red -? | grep RED | cut -d "v" -f 2)-1
+VER=$(node-red -? | grep RED | cut -d "v" -f 2)-2
 echo "NODE_RED VERSION is "$VER
 
 cd /usr/lib/node_modules
@@ -27,16 +27,10 @@ sudo find . -type f -name .editorconfig -exec rm {} \;
 sudo find . -type f -name *.swp -exec rm {} \;
 sudo find . -not -newermt 1971-01-01 -exec touch {} \;
 
-cd /usr/lib/node_modules/node-red-contrib-ibm-watson-iot/node_modules
-sudo find . -type d -name test -exec rm -r {} \;
-sudo find . -type d -name doc -exec rm -r {} \;
-sudo find . -type d -name example* -exec rm -r {} \;
-sudo find . -type d -name sample -exec rm -r {} \;
-
 cd /usr/lib/node_modules/node-red/node_modules
 sudo find . -type d -name test -exec rm -r {} \;
 sudo find . -type d -name doc -exec rm -r {} \;
-sudo find . -type d -name example* -exec rm -r {} \;
+# sudo find . -type d -name example -exec rm -r {} \;
 sudo find . -type d -name sample -exec rm -r {} \;
 sudo find . -type d -iname benchmark* -exec rm -r {} \;
 sudo find . -type d -iname .nyc_output -exec rm -r {} \;
@@ -61,7 +55,7 @@ sudo find . -type f -iname "*~" -exec rm {} \;
 # slightly more risky
 sudo find . -iname test* -exec rm -r {} \;
 sudo find . -type f -iname usage.txt -exec rm {} \;
-sudo find . -type f -iname example.js -exec rm {} \;
+# sudo find . -type f -iname example.js -exec rm {} \;
 sudo find . -type d -name node-pre-gyp-github -exec rm -r {} \;
 sudo find . -type f -iname build-all.json -exec rm -r {} \;
 #sudo find . -iname LICENSE* -type f -exec rm {} \;
@@ -73,7 +67,7 @@ sudo find . -type d -name sample -exec rm -r {} \;
 sudo find . -type d -iname coverage -exec rm -r {} \;
 sudo find . -type d -iname benchmark -exec rm -r {} \;
 sudo find . -type f -iname bench.gnu -exec rm -r {} \;
-sudo find .         -name example* -exec rm -r {} \;
+# sudo find .         -name example* -exec rm -r {} \;
 sudo find . -type f -name .npmignore -exec rm {} \;
 sudo find . -type f -name .travis.yml -exec rm {} \;
 sudo find . -type f -name .jshintrc -exec rm {} \;
@@ -129,6 +123,8 @@ sudo chmod 644 usr/lib/node_modules/node-red/editor/vendor/font-awesome/fonts/*
 sudo chmod 755 usr/lib/node_modules/node-red/red.js
 sudo chmod 755 usr/lib/node_modules/node-red-admin/node-red-admin.js
 
+sudo rm -f usr/lib/node_modules/node-red/node_modules/bcrypt/build-tmp-napi-v3/Release/nothing.a
+
 SIZE=`du -ks . | cut -f 1`
 echo "Installed size is $SIZE"
 
@@ -141,8 +137,8 @@ echo "Priority: optional" | sudo tee -a control
 echo "Architecture: armhf" | sudo tee -a control
 echo "Installed-Size: $SIZE" | sudo tee -a control
 #echo "Depends: nodejs (>= 8), python (>= 2.7)" | sudo tee -a control
-echo "Depends: nodejs (>= 10), npm (>= 5.8), python (>= 2.7)" | sudo tee -a control
-# echo "Depends: nodejs (>= 12), npm (>= 6.14), python (>= 2.7)" | sudo tee -a control
+# echo "Depends: nodejs (>= 10), npm (>= 5.8), python (>= 2.7)" | sudo tee -a control
+echo "Depends: nodejs (>= 12), npm (>= 7), python3 (>= 3)" | sudo tee -a control
 echo "Homepage: http://nodered.org" | sudo tee -a control
 echo "Maintainer: Dave Conway-Jones <dceejay@gmail.com>" | sudo tee -a control
 echo "Description: Node-RED - low-code programming for event-driven applications" | sudo tee -a control
@@ -150,7 +146,7 @@ echo " A graphical flow editor for event driven applications." | sudo tee -a con
 echo " Runs on Node.js - using a browser for the user interface." | sudo tee -a control
 echo " See http://nodered.org for more information, documentation and examples." | sudo tee -a control
 echo " ." | sudo tee -a control
-echo " Copyright 2017,2021 JS Foundation and other contributors, https://js.foundation/" | sudo tee -a control
+echo " Copyright 2017,2021 OpenJS Foundation and other contributors, https://openjsf.org/" | sudo tee -a control
 echo " Copyright 2015,2017 IBM Corp." | sudo tee -a control
 echo " Licensed under the Apache License, Version 2.0" | sudo tee -a control
 echo " http://www.apache.org/licenses/LICENSE-2.0" | sudo tee -a control
@@ -167,7 +163,7 @@ sudo chmod 0755 preinst postinst prerm postrm
 cd ../usr/share
 sudo mkdir -p doc/nodered
 cd doc/nodered
-echo " Copyright 2017-2021 JS Foundation and other contributors, https://js.foundation/" | sudo tee copyright
+echo " Copyright 2017-2021 OpenJS Foundation and other contributors, https://openjsf.org/" | sudo tee copyright
 echo "nodered ($VER) unstable; urgency=low" | sudo tee changelog
 echo "  * Point release." | sudo tee -a changelog
 echo " -- DCJ <ceejay@vnet.ibm.com>  $(date '+%a, %d %b %Y %H:%M:%S +0000')" | sudo tee -a changelog

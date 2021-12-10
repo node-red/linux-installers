@@ -257,17 +257,17 @@ case $yn in
         if [[ "$nv" -lt 12 && "$nv" -ne 0  && "$nrv" != 1 ]]; then
             if [[ "$NODE_VERSION" == "" ]]; then
                 echo "Nodejs $nv too old and new version not specified - exiting" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-                echo "Nodejs $nv is no longer supported."
-                echo '  You can update to the latest Node-RED 1.x version by adding  --nodered-version="1.3.5"'
-                echo "  to that install command. If in doubt this is the safer option."
+                echo "Node-RED v2.x no longer supports Nodejs $nv "
                 # echo "  Node-RED v2 no longer supports Nodejs $nv.  Please update."
                 # echo "  "
                 # echo "  You can use the old v1 branch by specifying --nodered-version=1.*"
                 echo "  "
-                echo "  Or you can force an install of node 12 or 14 by using the --node12, --node14 or --node16 parameter"
+                echo "  You can force an install of node 12, 14 or 16 by using the --node12, --node14 or --node16 parameter."
                 echo "  However doing so may break some nodes that may need re-installing manually."
-                echo "  Generally it is recommended to upgrade all nodes to their latest versions before upgrading."
+                echo "  Generally it is recommended to update all nodes to their latest versions before upgrading."
                 echo "  "
+                echo "  If you wish to stay on nodejs $nv you can update to the latest Node-RED 1.x version by adding"
+                echo '  --nodered-version="1.3.7" to that install command. If in doubt this is the safer option.'
                 if [[ "$npv" != "" ]]; then
                     echo "Checking for outdated nodes in $PWD"
                     npm --silent outdated

@@ -37,6 +37,7 @@ Options:
   --skip-pi         skip installing PI specific nodes without asking confirmation
   --restart         restart service if install succeeds
   --update-nodes    run npm update on existing installed nodes (within scope of package.json)
+  --nodered-user    specify the user to run as, useful for installing as sudo - e.g. --nodered-user=pi
   --nodered-version if not set, the latest version is used - e.g. --nodered-version="1.3.4"
   --node12          if set, forces install of major version of nodejs 12 LTS
   --node14          if set, forces install of major version of nodejs 14 LTS
@@ -95,6 +96,10 @@ if [ $# -gt 0 ]; then
         NODERED_VERSION="${1#*=}"
         shift
         ;;
+      --nodered-user=*)
+        NODERED_USER="${1#*=}"
+        shift
+        ;;
       --) # end argument parsing
         shift
         break
@@ -147,6 +152,7 @@ if [ "$EUID" == "0" ]; then
 # if [[ $SUDO_USER != "" ]]; then
   echo -en "\nroot user detected. Typical installs should be done as a regular user.\r\n"
   echo -en "If you are running this script using sudo, please cancel and rerun without sudo.\r\n"
+  echo -en "--nodered-user can be used to specify the user otherwise installation will happen under /root.\r\n"
   echo -en "If you know what you are doing as root, please continue.\r\n\r\n"
 
   yn="${CONFIRM_ROOT}"
@@ -161,9 +167,20 @@ if [ "$EUID" == "0" ]; then
   esac
   id -u nobody &>/dev/null || adduser --no-create-home --shell /dev/null --disabled-password --disabled-login --gecos '' nobody &>/dev/null
 fi
+
+# setup user, home and group
+if [[ "$NODERED_USER" == "" ]]; then
+    NODERED_HOME=$HOME
+    NODERED_USER=$USER
+    NODERED_GROUP=`id -gn`
+else
+    NODERED_GROUP="$NODERED_USER"
+    NODERED_HOME="/home/$NODERED_USER"
+fi
+
 if [[ "$(uname)" != "Darwin" ]]; then
 if curl -I https://registry.npmjs.org/@node-red/util  >/dev/null 2>&1; then
-echo -e '\033]2;'$USER@`hostname`:  Node-RED update'\007'
+echo -e '\033]2;'$NODERED_USER@`hostname`:  Node-RED update'\007'
 echo " "
 echo "This script checks the version of node.js installed is 12 or greater. It will try to"
 echo "install node 14 if none is found. It can optionally install node 12, 14 or 16 LTS for you."
@@ -181,7 +198,7 @@ echo "If in doubt please backup your SD card first."
 echo " "
 echo "See the optional parameters by re-running this command with --help"
 echo " "
-if [[ -e $HOME/.nvm ]]; then
+if [[ -e $NODERED_HOME/.nvm ]]; then
     echo -ne '\033[1mNOTE:\033[0m We notice you are using \033[38;5;88mnvm\033[0m. Please ensure it is running the current LTS version.\n'
     echo -ne 'Using nvm is NOT RECOMMENDED. Node-RED will not run as a service under nvm.\r\n\n'
 fi
@@ -202,19 +219,16 @@ case $yn in
         fi
 
         # this script assumes that $HOME is the folder of the user that runs node-red
-        # that $USER is the user name and the group name to use when running is the
+        # that $NODERED_USER is the user name and the group name to use when running is the
         # primary group of that user
         # if this is not correct then edit the lines below
         MYOS=$(cat /etc/*release | grep "^ID=" | cut -d = -f 2)
-        NODERED_HOME=$HOME
-        NODERED_USER=$USER
-        NODERED_GROUP=`id -gn`
         GLOBAL="true"
         TICK='\033[1;32m\u2714\033[0m'
         CROSS='\033[1;31m\u2718\033[0m'
         cd "$NODERED_HOME" || exit 1
         clear
-        echo -e "\nRunning Node-RED $EXTRAW for user $USER at $HOME on $MYOS\n"
+        echo -e "\nRunning Node-RED $EXTRAW for user $NODERED_USER at $NODERED_HOME on $MYOS\n"
 
         nv=0
         nv2=""
@@ -290,7 +304,7 @@ case $yn in
         echo "***************************************" | sudo tee -a /var/log/nodered-install.log >>/dev/null
         echo "" | sudo tee -a /var/log/nodered-install.log >>/dev/null
         echo "Started : "$time1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-        echo "Running for user $USER at $HOME" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        echo "Running for user $NODERED_USER at $NODERED_HOME" | sudo tee -a /var/log/nodered-install.log >>/dev/null
         echo -ne '\r\nThis can take 20-30 minutes on the slower Pi versions - please wait.\r\n\n'
         echo -ne '  Stop Node-RED                       \r\n'
         echo -ne '  Remove old version of Node-RED      \r\n'
@@ -388,10 +402,10 @@ case $yn in
                 # remove the tgz file to save space
                 rm /tmp/node.tgz 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 echo -ne "  Install Node.js for Armv6           $CHAR"
-            elif [[ -e $HOME/.nvm ]]; then
+            elif [[ -e $NODERED_HOME/.nvm ]]; then
                 echo -ne '  Using NVM to manage Node.js         +   please run   \033[0;36mnvm use lts\033[0m   before running Node-RED\r\n'
                 echo -ne '  NOTE: Using nvm is NOT RECOMMENDED.     Node-RED will not run as a service under nvm.\r\n'
-                export NVM_DIR=$HOME/.nvm
+                export NVM_DIR=$NODERED_HOME/.nvm
                 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
                 echo "Using NVM !!! $(nvm current)" 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 nvm install $NODE_VERSION --no-progress --latest-npm >/dev/null 2>&1
@@ -399,7 +413,7 @@ case $yn in
                 nvm alias default $NODE_VERSION >/dev/null 2>&1
                 echo "Now using --- $(nvm current)" 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 GLOBAL="false"
-                ln -f -s $HOME/.nvm/versions/node/$(nvm current)/lib/node_modules/node-red/red.js  $NODERED_HOME/node-red
+                ln -f -s $NODERED_HOME/.nvm/versions/node/$(nvm current)/lib/node_modules/node-red/red.js  $NODERED_HOME/node-red
                 echo -ne "  Update Node.js $NODE_VERSION                   $CHAR"
             elif [[ $(which n) ]]; then
                 echo "Using n" | sudo tee -a /var/log/nodered-install.log >>/dev/null
@@ -554,8 +568,8 @@ case $yn in
                 echo -ne "  Add shortcut commands               $CROSS\r\n"
             fi
 
-            # add systemd script and configure it for $USER
-            echo "Now add systemd script and configure it for $USER" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+            # add systemd script and configure it for $NODERED_USER
+            echo "Now add systemd script and configure it for $NODERED_USER" | sudo tee -a /var/log/nodered-install.log >>/dev/null
             if sudo curl -sL -o /lib/systemd/system/nodered.service https://raw.githubusercontent.com/node-red/linux-installers/master/resources/nodered.service 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
             # set the memory, User Group and WorkingDirectory in nodered.service
             if [ $(cat /proc/meminfo | grep MemTotal | cut -d ":" -f 2 | cut -d "k" -f 1 | xargs) -lt 894000 ]; then mem="256"; else mem="512"; fi

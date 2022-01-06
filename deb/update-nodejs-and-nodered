@@ -127,7 +127,7 @@ else
     APTOK=false
     echo "apt not found. Node/npm install will be skipped" | sudo tee -a /var/log/nodered-install.log >>/dev/null
 fi
-if [ -x "$(command -v apt)" ]; then
+if [ -x "$(command -v systemctl)" ]; then
     SYSTEMDOK=true;
 else
     SYSTEMDOK=false

@@ -222,7 +222,7 @@ case $yn in
         # that $NODERED_USER is the user name and the group name to use when running is the
         # primary group of that user
         # if this is not correct then edit the lines below
-        MYOS=$(cat /etc/*release | grep "^ID=" | cut -d = -f 2)
+        MYOS=$(cat /etc/os-release | grep "^ID=" | cut -d = -f 2 | tr -d '"')
         GLOBAL="true"
         TICK='\033[1;32m\u2714\033[0m'
         CROSS='\033[1;31m\u2718\033[0m'

@@ -581,13 +581,13 @@ case $yn in
                 EXISTING_GROUP=$(sed -nr "/^\[Service\]/ { :l /^Group[ ]*=/ { s/.*=[ ]*//; p; q;}; n; b l;}" $SYSTEMDFILE);
                 EXISTING_HOME=$(sed -nr "/^\[Service\]/ { :l /^WorkingDirectory[ ]*=/ { s/.*=[ ]*//; p; q;}; n; b l;}" $SYSTEMDFILE);
 
-                echo "systemd script found for $EXISTING_USER:$EXISTING_GROUP @ $EXISTING_HOME.";
+                echo "systemd script found for $EXISTING_USER:$EXISTING_GROUP @ $EXISTING_HOME."; | sudo tee -a /var/log/nodered-install.log >>/dev/null
 
                 if [[ $EXISTING_USER == $NODERED_USER && $EXISTING_GROUP == $NODERED_GROUP && $EXISTING_HOME == $NODERED_HOME ]];
                 then
                     SYSTEMDFILE+=".alt"
-                    echo "Existing systemd script matches current installation. To prevent loss of modifications, we'll not recreate the systemd script."
-                    echo "An alternative (standard) script will be created as $SYSTEMDFILE."
+                    echo "Existing systemd script matches current installation. To prevent loss of modifications, we'll not recreate the systemd script." | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                    echo "An alternative (standard) script will be created as $SYSTEMDFILE." | sudo tee -a /var/log/nodered-install.log >>/dev/null
 
                     SYSTEMDMESSAGE=" File existed. Not modified."
                 else
@@ -601,7 +601,7 @@ case $yn in
                         BACKUPFILE=${SYSTEMDFILE}.backup.${BACKUPFILECOUNTER}
                     done
 
-                    echo "Existing systemd script does not match the current installation! We'll backup this file and create a new standard script."
+                    echo "Existing systemd script does not match the current installation! We'll backup this file and create a new standard script." | sudo tee -a /var/log/nodered-install.log >>/dev/null
                     sudo mv $SYSTEMDFILE ${BACKUPFILE}
                     SYSTEMDMESSAGE=" Existing script moved to ${BACKUPFILE}"
                 fi

@@ -581,7 +581,7 @@ case $yn in
                 EXISTING_GROUP=$(sed -nr "/^\[Service\]/ { :l /^Group[ ]*=/ { s/.*=[ ]*//; p; q;}; n; b l;}" $SYSTEMDFILE);
                 EXISTING_HOME=$(sed -nr "/^\[Service\]/ { :l /^WorkingDirectory[ ]*=/ { s/.*=[ ]*//; p; q;}; n; b l;}" $SYSTEMDFILE);
 
-                echo "systemd script found for $EXISTING_USER:$EXISTING_GROUP @ $EXISTING_HOME."; | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                echo "systemd script found for $EXISTING_USER:$EXISTING_GROUP @ $EXISTING_HOME." | sudo tee -a /var/log/nodered-install.log >>/dev/null
 
                 if [[ $EXISTING_USER == $NODERED_USER && $EXISTING_GROUP == $NODERED_GROUP && $EXISTING_HOME == $NODERED_HOME ]];
                 then
@@ -589,7 +589,7 @@ case $yn in
                     echo "Existing systemd script matches current installation. To prevent loss of modifications, we'll not recreate the systemd script." | sudo tee -a /var/log/nodered-install.log >>/dev/null
                     echo "An alternative (standard) script will be created as $SYSTEMDFILE." | sudo tee -a /var/log/nodered-install.log >>/dev/null
 
-                    SYSTEMDMESSAGE=" File existed. Not modified."
+                    SYSTEMDMESSAGE="File existed. Not modified."
                 else
 
                     BACKUPFILE=${SYSTEMDFILE}.backup
@@ -603,7 +603,7 @@ case $yn in
 
                     echo "Existing systemd script does not match the current installation! We'll backup this file and create a new standard script." | sudo tee -a /var/log/nodered-install.log >>/dev/null
                     sudo mv $SYSTEMDFILE ${BACKUPFILE}
-                    SYSTEMDMESSAGE=" Existing script moved to ${BACKUPFILE}"
+                    SYSTEMDMESSAGE="Existing script moved to ${BACKUPFILE}"
                 fi
             fi
 
@@ -616,7 +616,7 @@ case $yn in
             sudo sed -i 's#=512#='$mem'#;' $SYSTEMDFILE
             sudo sed -i 's#^User=pi#User='$NODERED_USER'#;s#^Group=pi#Group='$NODERED_GROUP'#;s#^WorkingDirectory=/home/pi#WorkingDirectory='$NODERED_HOME'#;s#^EnvironmentFile=-/home/pi#EnvironmentFile=-'$NODERED_HOME'#;' $SYSTEMDFILE
             sudo systemctl daemon-reload 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-            echo -ne "  Update systemd script               $CHAR$SYSTEMDMESSAGE\r\n"
+            echo -ne "  Update systemd script               $CHAR   $SYSTEMDMESSAGE\r\n"
         else
             echo -ne "  Add shortcut commands               :   Skipped - systemd not found\r\n"
             echo -ne "  Update systemd script               :   Skipped - systemd not found\r\n"

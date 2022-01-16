@@ -173,12 +173,50 @@ case $yn in
             echo -ne "  Add shortcut commands               $CROSS\r\n"
         fi
 
-        echo "Now add systemd script and configure it for $USER" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-        if sudo curl -sL -o /etc/systemd/system/nodered.service https://raw.githubusercontent.com/node-red/linux-installers/master/resources/nodered.service 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+        # add systemd script and configure it for $NODERED_USER
+        echo "Now add systemd script and configure it for $NODERED_USER:$NODERED_GROUP @ $NODERED_HOME" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+
+        # check if systemd script already exists
+        SYSTEMDFILE="/etc/systemd/system/nodered.service"
+        SYSTEMDMESSAGE=""
+
+        if test -f "$SYSTEMDFILE"; then
+            
+            EXISTING_USER=$(sed -nr "/^\[Service\]/ { :l /^User[ ]*=/ { s/.*=[ ]*//; p; q;}; n; b l;}" $SYSTEMDFILE);
+            EXISTING_GROUP=$(sed -nr "/^\[Service\]/ { :l /^Group[ ]*=/ { s/.*=[ ]*//; p; q;}; n; b l;}" $SYSTEMDFILE);
+            EXISTING_HOME=$(sed -nr "/^\[Service\]/ { :l /^WorkingDirectory[ ]*=/ { s/.*=[ ]*//; p; q;}; n; b l;}" $SYSTEMDFILE);
+
+            echo "systemd script found for $EXISTING_USER:$EXISTING_GROUP @ $EXISTING_HOME." | sudo tee -a /var/log/nodered-install.log >>/dev/null
+
+            if [[ $EXISTING_USER == $NODERED_USER && $EXISTING_GROUP == $NODERED_GROUP && $EXISTING_HOME == $NODERED_HOME ]];
+            then
+                SYSTEMDFILE+=".alt"
+                echo "Existing systemd script matches current installation. To prevent loss of modifications, we'll not recreate the systemd script." | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                echo "An alternative (standard) script will be created as $SYSTEMDFILE." | sudo tee -a /var/log/nodered-install.log >>/dev/null
+
+                SYSTEMDMESSAGE="File existed. Not modified."
+            else
+
+                BACKUPFILE=${SYSTEMDFILE}.backup
+                BACKUPFILECOUNTER=0
+
+                while test -f "$BACKUPFILE";
+                do
+                    ((BACKUPFILECOUNTER+=1))
+                    BACKUPFILE=${SYSTEMDFILE}.backup.${BACKUPFILECOUNTER}
+                done
+
+                echo "Existing systemd script does not match the current installation! We'll backup this file and create a new standard script." | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                sudo mv $SYSTEMDFILE ${BACKUPFILE}
+                SYSTEMDMESSAGE="Existing script moved to ${BACKUPFILE}"
+            fi
+        fi
+
+        if sudo curl -sL -o $SYSTEMDFILE https://raw.githubusercontent.com/node-red/linux-installers/master/resources/nodered.service 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
         # set the User Group and WorkingDirectory in nodered.service
-        sudo sed -i 's#^User=pi#User='$NODERED_USER'#;s#^Group=pi#Group='$NODERED_GROUP'#;s#^WorkingDirectory=/home/pi#WorkingDirectory='$NODERED_HOME'#;' /etc/systemd/system/nodered.service
+        sudo sed -i 's#^User=pi#User='$NODERED_USER'#;s#^Group=pi#Group='$NODERED_GROUP'#;s#^WorkingDirectory=/home/pi#WorkingDirectory='$NODERED_HOME'#;' $SYSTEMDFILE
         sudo systemctl daemon-reload 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-        echo -ne "  Update systemd script               $CHAR\r\n"
+        echo -ne "  Update systemd script               $CHAR   $SYSTEMDMESSAGE\r\n"
 
         if [[ $OPENFW == "YES" ]]; then
             echo "Now add firewall rule for 1880" | sudo tee -a /var/log/nodered-install.log >>/dev/null

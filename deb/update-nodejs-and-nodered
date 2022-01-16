@@ -573,50 +573,37 @@ case $yn in
 
             # check if systemd script already exists
             SYSTEMDFILE="/lib/systemd/system/nodered.service"
-            SYSTEMDMESSAGE=""
 
-            if test -f "$SYSTEMDFILE"; then
-                
-                EXISTING_USER=$(sed -nr "/^\[Service\]/ { :l /^User[ ]*=/ { s/.*=[ ]*//; p; q;}; n; b l;}" $SYSTEMDFILE);
-                EXISTING_GROUP=$(sed -nr "/^\[Service\]/ { :l /^Group[ ]*=/ { s/.*=[ ]*//; p; q;}; n; b l;}" $SYSTEMDFILE);
-                EXISTING_HOME=$(sed -nr "/^\[Service\]/ { :l /^WorkingDirectory[ ]*=/ { s/.*=[ ]*//; p; q;}; n; b l;}" $SYSTEMDFILE);
-
-                echo "systemd script found for $EXISTING_USER:$EXISTING_GROUP @ $EXISTING_HOME." | sudo tee -a /var/log/nodered-install.log >>/dev/null
-
-                if [[ $EXISTING_USER == $NODERED_USER && $EXISTING_GROUP == $NODERED_GROUP && $EXISTING_HOME == $NODERED_HOME ]];
-                then
-                    SYSTEMDFILE+=".alt"
-                    echo "Existing systemd script matches current installation. To prevent loss of modifications, we'll not recreate the systemd script." | sudo tee -a /var/log/nodered-install.log >>/dev/null
-                    echo "An alternative (standard) script will be created as $SYSTEMDFILE." | sudo tee -a /var/log/nodered-install.log >>/dev/null
-
-                    SYSTEMDMESSAGE="File existed. Not modified."
-                else
-
-                    BACKUPFILE=${SYSTEMDFILE}.backup
-                    BACKUPFILECOUNTER=0
-
-                    while test -f "$BACKUPFILE";
-                    do
-                        ((BACKUPFILECOUNTER+=1))
-                        BACKUPFILE=${SYSTEMDFILE}.backup.${BACKUPFILECOUNTER}
-                    done
-
-                    echo "Existing systemd script does not match the current installation! We'll backup this file and create a new standard script." | sudo tee -a /var/log/nodered-install.log >>/dev/null
-                    sudo mv $SYSTEMDFILE ${BACKUPFILE}
-                    SYSTEMDMESSAGE="Existing script moved to ${BACKUPFILE}"
-                fi
-            fi
-
-            if sudo curl -sL -o $SYSTEMDFILE https://raw.githubusercontent.com/node-red/linux-installers/master/resources/nodered.service 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+            if sudo curl -sL -o ${SYSTEMDFILE}.temp https://raw.githubusercontent.com/node-red/linux-installers/master/resources/nodered.service 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
             # set the memory, User Group and WorkingDirectory in nodered.service
             if [ $(cat /proc/meminfo | grep MemTotal | cut -d ":" -f 2 | cut -d "k" -f 1 | xargs) -lt 894000 ]; then mem="256"; else mem="512"; fi
             if [ $(cat /proc/meminfo | grep MemTotal | cut -d ":" -f 2 | cut -d "k" -f 1 | xargs) -gt 1894000 ]; then mem="1024"; fi
             if [ $(cat /proc/meminfo | grep MemTotal | cut -d ":" -f 2 | cut -d "k" -f 1 | xargs) -gt 3894000 ]; then mem="2048"; fi
             # if [ $(cat /proc/meminfo | grep MemTotal | cut -d ":" -f 2 | cut -d "k" -f 1 | xargs) -gt 7894000 ]; then mem="4096"; fi
-            sudo sed -i 's#=512#='$mem'#;' $SYSTEMDFILE
-            sudo sed -i 's#^User=pi#User='$NODERED_USER'#;s#^Group=pi#Group='$NODERED_GROUP'#;s#^WorkingDirectory=/home/pi#WorkingDirectory='$NODERED_HOME'#;s#^EnvironmentFile=-/home/pi#EnvironmentFile=-'$NODERED_HOME'#;' $SYSTEMDFILE
+            sudo sed -i 's#=512#='$mem'#;' ${SYSTEMDFILE}.temp
+            sudo sed -i 's#^User=pi#User='$NODERED_USER'#;s#^Group=pi#Group='$NODERED_GROUP'#;s#^WorkingDirectory=/home/pi#WorkingDirectory='$NODERED_HOME'#;s#^EnvironmentFile=-/home/pi#EnvironmentFile=-'$NODERED_HOME'#;' ${SYSTEMDFILE}.temp
+
+            if test -f "$SYSTEMDFILE"; then
+                
+                # there's already a systemd script
+                EXISTING_FILE=$(md5sum $SYSTEMDFILE | awk '$1 "${SYSTEMDFILE}" {print $1}');
+                TEMP_FILE=$(md5sum ${SYSTEMDFILE}.temp | awk '$1 "${SYSTEMDFILE}.temp" {print $1}');
+
+                if [[ $EXISTING_FILE == $TEMP_FILE ]];
+                then
+                    : # silent procedure
+                else
+                    echo "Customized systemd script found @ $SYSTEMDFILE. To prevent loss of modifications, we'll not recreate the systemd script." | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                    echo "If you want the installer to recreate the systemd script, please delete or rename the current script & re-run the installer." | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                    CHAR="-   Skipped - existing script is customized."
+                fi
+                sudo rm ${SYSTEMDFILE}.temp
+            else
+                sudo mv ${SYSTEMDFILE}.temp $SYSTEMDFILE
+            fi
+
             sudo systemctl daemon-reload 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-            echo -ne "  Update systemd script               $CHAR   $SYSTEMDMESSAGE\r\n"
+            echo -ne "  Update systemd script               $CHAR\r\n"
         else
             echo -ne "  Add shortcut commands               :   Skipped - systemd not found\r\n"
             echo -ne "  Update systemd script               :   Skipped - systemd not found\r\n"

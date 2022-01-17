@@ -173,10 +173,35 @@ case $yn in
             echo -ne "  Add shortcut commands               $CROSS\r\n"
         fi
 
-        echo "Now add systemd script and configure it for $USER" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-        if sudo curl -sL -o /etc/systemd/system/nodered.service https://raw.githubusercontent.com/node-red/linux-installers/master/resources/nodered.service 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+        # add systemd script and configure it for $NODERED_USER
+        echo "Now add systemd script and configure it for $NODERED_USER:$NODERED_GROUP @ $NODERED_HOME" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+
+        # check if systemd script already exists
+        SYSTEMDFILE="/etc/systemd/system/nodered.service"
+
+        if sudo curl -sL -o ${SYSTEMDFILE}.temp https://raw.githubusercontent.com/node-red/linux-installers/master/resources/nodered.service 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
         # set the User Group and WorkingDirectory in nodered.service
-        sudo sed -i 's#^User=pi#User='$NODERED_USER'#;s#^Group=pi#Group='$NODERED_GROUP'#;s#^WorkingDirectory=/home/pi#WorkingDirectory='$NODERED_HOME'#;' /etc/systemd/system/nodered.service
+        sudo sed -i 's#^User=pi#User='$NODERED_USER'#;s#^Group=pi#Group='$NODERED_GROUP'#;s#^WorkingDirectory=/home/pi#WorkingDirectory='$NODERED_HOME'#;' ${SYSTEMDFILE}.temp
+
+        if test -f "$SYSTEMDFILE"; then
+            
+            # there's already a systemd script
+            EXISTING_FILE=$(md5sum $SYSTEMDFILE | awk '$1 "${SYSTEMDFILE}" {print $1}');
+            TEMP_FILE=$(md5sum ${SYSTEMDFILE}.temp | awk '$1 "${SYSTEMDFILE}.temp" {print $1}');
+
+            if [[ $EXISTING_FILE == $TEMP_FILE ]];
+            then
+                : # silent procedure
+            else
+                echo "Customized systemd script found @ $SYSTEMDFILE. To prevent loss of modifications, we'll not recreate the systemd script." | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                echo "If you want the installer to recreate the systemd script, please delete or rename the current script & re-run the installer." | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                CHAR="-   Skipped - existing script is customized."
+            fi
+            sudo rm ${SYSTEMDFILE}.temp
+        else
+            sudo mv ${SYSTEMDFILE}.temp $SYSTEMDFILE
+        fi
+
         sudo systemctl daemon-reload 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
         echo -ne "  Update systemd script               $CHAR\r\n"
 

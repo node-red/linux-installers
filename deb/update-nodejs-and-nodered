@@ -18,12 +18,12 @@
 # Node-RED Installer for DEB based systems
 
 umask 0022
-tgta12=12.22.7   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgta12=12.22.9   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 tgtl12=12.16.3   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta14=14.18.1   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
-tgtl14=14.18.1   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta16=16.13.0    # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
-tgtl16=16.13.0    # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
+tgta14=14.18.3   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgtl14=14.18.3   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
+tgta16=16.13.2    # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgtl16=16.13.2    # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 
 usage() {
   cat << EOL
@@ -584,7 +584,6 @@ case $yn in
             sudo sed -i 's#^User=pi#User='$NODERED_USER'#;s#^Group=pi#Group='$NODERED_GROUP'#;s#^WorkingDirectory=/home/pi#WorkingDirectory='$NODERED_HOME'#;s#^EnvironmentFile=-/home/pi#EnvironmentFile=-'$NODERED_HOME'#;' ${SYSTEMDFILE}.temp
 
             if test -f "$SYSTEMDFILE"; then
-                
                 # there's already a systemd script
                 EXISTING_FILE=$(md5sum $SYSTEMDFILE | awk '$1 "${SYSTEMDFILE}" {print $1}');
                 TEMP_FILE=$(md5sum ${SYSTEMDFILE}.temp | awk '$1 "${SYSTEMDFILE}.temp" {print $1}');

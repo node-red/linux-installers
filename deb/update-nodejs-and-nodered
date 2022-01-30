@@ -668,6 +668,13 @@ case $yn in
             echo -e "You may want to run   \033[0;36mnode-red admin init\033[0m"
             echo "to configure your initial options and settings."
             echo " "
+        elif ! diff -q /usr/lib/node_modules/node-red/settings.js $file &>/dev/null 2>&1 ; then
+            echo " "
+            echo "Your settings.js file is different from the latest defaults."
+            echo "You may wish to run"
+            echo "   diff -y --suppress-common-lines /usr/lib/node_modules/node-red/settings.js $file"
+            echo "to compare them."
+            echo " "
         fi
     ;;
     * )

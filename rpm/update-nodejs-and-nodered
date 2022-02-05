@@ -64,10 +64,10 @@ case $yn in
         }
 
         MYOS=$(cat /etc/*release | grep "^ID=" | cut -d = -f 2)
-        versions='fedora"centos"rhel"ol"almalinux"rocky"'
+        versions='fedora"centos"rhel"ol"almalinux"rocky"miraclelinux"'
         if [[ $versions != *"$MYOS"* ]]; then
             echo " "
-            echo "Doesn't seem to be running on RedHat, Centos, Fedora, Rocky, Alma, or Oracle Linux, so quitting"
+            echo "Doesn't seem to be running on RedHat, Centos, Fedora, Rocky, Alma, Oracle Linux, or MIRACLE LINUX so quitting"
             echo " "
             exit 1
         fi
@@ -100,7 +100,7 @@ case $yn in
         # ensure ~/.config dir is owned by the user
         sudo chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.config/
         echo "Now install nodejs" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-        if [ $MYOS = "fedora" ] || [ $MYOS = "almalinux" ] || [ $MYOS = "rocky" ]; then
+        if [ $MYOS = "fedora" ] || [ $MYOS = "almalinux" ] || [ $MYOS = "rocky" ] || [ $MYOS = "miraclelinux" ]; then
             sudo dnf module reset -y nodejs 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
             if sudo dnf module install -y nodejs:14/default 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
         else

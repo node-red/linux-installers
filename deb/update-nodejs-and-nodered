@@ -20,10 +20,10 @@
 umask 0022
 tgta12=12.22.9   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 tgtl12=12.16.3   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta14=14.18.3   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
-tgtl14=14.18.3   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta16=16.13.2    # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
-tgtl16=16.13.2    # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
+tgta14=14.19.0   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgtl14=14.19.0   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
+tgta16=16.14.0    # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgtl16=16.14.0    # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 
 usage() {
   cat << EOL
@@ -359,7 +359,25 @@ case $yn in
                 NODE_VERSION="14"
             fi
             # maybe remove Node.js - or upgrade if nodesource.list exists
-            if [[ "$(uname -m)" =~ "i686" ]]; then
+            if [[ -d $NODERED_HOME/.nvm ]]; then
+                GLOBAL="false"
+                echo -ne '  Using NVM to manage Node.js         +   please run   \033[0;36mnvm use lts\033[0m   before running Node-RED\r\n'
+                echo -ne '  NOTE: Using nvm is NOT RECOMMENDED.     Node-RED will not run as a service under nvm.\r\n'
+                export NVM_DIR=$NODERED_HOME/.nvm
+                [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+                echo "Using NVM !!! $(nvm current)" 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                nvm install $NODE_VERSION --no-progress --latest-npm >/dev/null 2>&1
+                nvm use $NODE_VERSION >/dev/null 2>&1
+                nvm alias default $NODE_VERSION >/dev/null 2>&1
+                echo "Now using --- $(nvm current)" 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                ln -f -s $NODERED_HOME/.nvm/versions/node/$(nvm current)/lib/node_modules/node-red/red.js  $NODERED_HOME/node-red
+                echo -ne "  Update Node.js $NODE_VERSION                   $CHAR"
+            elif [[ $(which n) ]]; then
+                echo "Using n" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                echo -ne "  Using N to manage Node.js           +\r\n"
+                if sudo n $NODE_VERSION 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+                echo -ne "  Update Node.js $NODE_VERSION                   $CHAR"
+            elif [[ "$(uname -m)" =~ "i686" ]]; then
                 echo "Using i686" | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 curl -sSL -o /tmp/node.tgz https://unofficial-builds.nodejs.org/download/release/v$tgtl/node-v$tgtl-linux-x86.tar.gz 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 # unpack it into the correct places
@@ -402,24 +420,6 @@ case $yn in
                 # remove the tgz file to save space
                 rm /tmp/node.tgz 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 echo -ne "  Install Node.js for Armv6           $CHAR"
-            elif [[ -e $NODERED_HOME/.nvm ]]; then
-                echo -ne '  Using NVM to manage Node.js         +   please run   \033[0;36mnvm use lts\033[0m   before running Node-RED\r\n'
-                echo -ne '  NOTE: Using nvm is NOT RECOMMENDED.     Node-RED will not run as a service under nvm.\r\n'
-                export NVM_DIR=$NODERED_HOME/.nvm
-                [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-                echo "Using NVM !!! $(nvm current)" 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-                nvm install $NODE_VERSION --no-progress --latest-npm >/dev/null 2>&1
-                nvm use $NODE_VERSION >/dev/null 2>&1
-                nvm alias default $NODE_VERSION >/dev/null 2>&1
-                echo "Now using --- $(nvm current)" 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-                GLOBAL="false"
-                ln -f -s $NODERED_HOME/.nvm/versions/node/$(nvm current)/lib/node_modules/node-red/red.js  $NODERED_HOME/node-red
-                echo -ne "  Update Node.js $NODE_VERSION                   $CHAR"
-            elif [[ $(which n) ]]; then
-                echo "Using n" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-                echo -ne "  Using N to manage Node.js           +\r\n"
-                if sudo n $NODE_VERSION 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
-                echo -ne "  Update Node.js $NODE_VERSION                   $CHAR"
             else
                 echo "Installing nodejs $NODE_VERSION" | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 # clean out old nodejs stuff
@@ -500,6 +500,7 @@ case $yn in
         sudo chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.node-red/ 2>&1 >>/dev/null
         pushd "$NODERED_HOME/.node-red" 2>&1 >>/dev/null
             npm config set update-notifier false 2>&1 >>/dev/null
+            # npm config set color false 2>&1 >>/dev/null
             if [ ! -f "package.json" ]; then
                 echo '{' > package.json
                 echo '  "name": "node-red-project",' >> package.json

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2016,2020 JS Foundation and other contributors, https://js.foundation/
+# Copyright 2016,2022 JS Foundation and other contributors, https://js.foundation/
 # Copyright 2015,2016 IBM Corp.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,10 +20,10 @@
 umask 0022
 tgta12=12.22.9   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 tgtl12=12.16.3   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta14=14.19.0   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
-tgtl14=14.19.0   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta16=16.14.0    # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
-tgtl16=16.14.0    # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
+tgta14=14.19.1   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgtl14=14.19.1   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
+tgta16=16.14.2    # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgtl16=16.14.2    # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 
 usage() {
   cat << EOL
@@ -671,10 +671,10 @@ case $yn in
             echo " "
         elif ! diff -q /usr/lib/node_modules/node-red/settings.js $file &>/dev/null 2>&1 ; then
             echo " "
-            echo "Your settings.js file is different from the latest defaults."
+            echo "Just FYI : Your settings.js file is different from the latest defaults."
             echo "You may wish to run"
             echo "   diff -y --suppress-common-lines /usr/lib/node_modules/node-red/settings.js $file"
-            echo "to compare them."
+            echo "to compare them and see what the latest options are."
             echo " "
         fi
     ;;

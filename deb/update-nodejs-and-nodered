@@ -22,8 +22,10 @@ tgta12=12.22.9   # need armv6l latest from https://unofficial-builds.nodejs.org/
 tgtl12=12.16.3   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 tgta14=14.19.1   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 tgtl14=14.19.1   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta16=16.14.2    # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
-tgtl16=16.14.2    # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
+tgta16=16.15.0   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgtl16=16.15.0   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
+tgta18=18.0.0    # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgtl18=18.0.0    # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 
 usage() {
   cat << EOL
@@ -38,11 +40,12 @@ Options:
   --restart         restart service if install succeeds
   --update-nodes    run npm update on existing installed nodes (within scope of package.json)
   --nodered-user    specify the user to run as, useful for installing as sudo - e.g. --nodered-user=pi
-  --nodered-version if not set, the latest version is used - e.g. --nodered-version="1.3.4"
+  --nodered-version if not set, the latest version is used - e.g. --nodered-version="2.2.2"
   --node12          if set, forces install of major version of nodejs 12 LTS
   --node14          if set, forces install of major version of nodejs 14 LTS
   --node16          if set, forces install of major version of nodejs 16 LTS
-                    if none set, install nodejs 14 LTS if nodejs version is less than 12,
+  --node18          if set, forces install of major version of nodejs 18 LTS
+                    if none set, install nodejs 16 LTS if nodejs version is less than 14,
                     otherwise leave current install
 EOL
 }
@@ -82,6 +85,10 @@ if [ $# -gt 0 ]; then
         ;;
       --node16)
         NODE_VERSION="16"
+        shift
+        ;;
+      --node18)
+        NODE_VERSION="18"
         shift
         ;;
       --restart)
@@ -182,8 +189,8 @@ if [[ "$(uname)" != "Darwin" ]]; then
 if curl -I https://registry.npmjs.org/@node-red/util  >/dev/null 2>&1; then
 echo -e '\033]2;'$NODERED_USER@`hostname`:  Node-RED update'\007'
 echo " "
-echo "This script checks the version of node.js installed is 12 or greater. It will try to"
-echo "install node 14 if none is found. It can optionally install node 12, 14 or 16 LTS for you."
+echo "This script checks the version of node.js installed is 14 or greater. It will try to"
+echo "install node 16 if none is found. It can optionally install node 12, 14, 16 or 18 LTS for you."
 echo " "
 echo "If necessary it will then remove the old core of Node-RED, before then installing the latest"
 echo "version. You can also optionally specify the version required."
@@ -268,20 +275,20 @@ case $yn in
             NODE_VERSION="12"
         fi
 
-        if [[ "$nv" -lt 12 && "$nv" -ne 0  && "$nrv" != 1 ]]; then
+        if [[ "$nv" -lt 14 && "$nv" -ne 0  && "$nrv" != 1 ]]; then
             if [[ "$NODE_VERSION" == "" ]]; then
                 echo "Nodejs $nv too old and new version not specified - exiting" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-                echo "Node-RED v2.x no longer supports Nodejs $nv "
+                echo "Node-RED v3.x no longer supports Nodejs $nv "
                 # echo "  Node-RED v2 no longer supports Nodejs $nv.  Please update."
                 # echo "  "
                 # echo "  You can use the old v1 branch by specifying --nodered-version=1.*"
                 echo "  "
-                echo "  You can force an install of node 12, 14 or 16 by using the --node12, --node14 or --node16 parameter."
+                echo "  You can force an install of node 14, 16  or 18 by using the --node14, --node16 or --node18 parameter."
                 echo "  However doing so may break some nodes that may need re-installing manually."
                 echo "  Generally it is recommended to update all nodes to their latest versions before upgrading."
                 echo "  "
-                echo "  If you wish to stay on nodejs $nv you can update to the latest Node-RED 1.x version by adding"
-                echo '  --nodered-version="1.3.7" to that install command. If in doubt this is the safer option.'
+                echo "  If you wish to stay on nodejs $nv you can update to the latest Node-RED 1.x or 2.x version by adding"
+                echo '  --nodered-version="1.3.7" or --nodered-version="2.2.2" to that install command. If in doubt this is the safer option.'
                 if [[ "$npv" != "" ]]; then
                     echo "Checking for outdated nodes in $PWD"
                     npm --silent outdated
@@ -344,19 +351,22 @@ case $yn in
             echo -ne "  Leave existing Node.js              :"
         elif [[ "$NODE_VERSION" == "" && "$nv" -ne 0 ]]; then
             CHAR="-"
-            echo -ne "  Node option not specified           :   --node12, --node14, or --node16\n"
+            echo -ne "  Node option not specified           :   --node14, --node16, or --node18\n"
             echo -ne "  Leave existing Node.js              :"
         else
             if [[ "$NODE_VERSION" == "12" ]]; then
                 tgtl=$tgtl12
                 tgta=$tgta12
-            elif [[ "$NODE_VERSION" == "16" ]]; then
-                tgtl=$tgtl16
-                tgta=$tgta16
-            else
+            elif [[ "$NODE_VERSION" == "14" ]]; then
                 tgtl=$tgtl14
                 tgta=$tgta14
-                NODE_VERSION="14"
+            elif [[ "$NODE_VERSION" == "18" ]]; then
+                tgtl=$tgtl18
+                tgta=$tgta18
+            else
+                tgtl=$tgtl16
+                tgta=$tgta16
+                NODE_VERSION="16"
             fi
             # maybe remove Node.js - or upgrade if nodesource.list exists
             if [[ -d $NODERED_HOME/.nvm ]]; then
@@ -485,13 +495,13 @@ case $yn in
         fi
 
         if [[ "$GLOBAL" == "true" ]]; then
-            sudo npm i -g --unsafe-perm --no-progress --no-update-notifier --no-audit --no-fund node-red@"$NODERED_VERSION_SELECTION" 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; nri=${PIPESTATUS[0]}
+            sudo npm i --location=global --unsafe-perm --no-progress --no-update-notifier --no-audit --no-fund node-red@"$NODERED_VERSION_SELECTION" 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; nri=${PIPESTATUS[0]}
             if [[ $nri -eq 0 ]]; then CHAR=$TICK; else CHAR=$CROSS; fi
         else
-            npm i -g --unsafe-perm --no-progress --no-update-notifier --no-audit --no-fund node-red@"$NODERED_VERSION_SELECTION" 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; nri=${PIPESTATUS[0]}
+            npm i --location=global --unsafe-perm --no-progress --no-update-notifier --no-audit --no-fund node-red@"$NODERED_VERSION_SELECTION" 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; nri=${PIPESTATUS[0]}
             if [[ $nri -eq 0 ]]; then CHAR=$TICK; else CHAR=$CROSS; fi
         fi
-        nrv=$(npm --no-progress --no-update-notifier --no-audit --no-fund -g ls node-red | grep node-red | cut -d '@' -f 2 | sudo tee -a /var/log/nodered-install.log) >>/dev/null 2>&1
+        nrv=$(npm --no-progress --no-update-notifier --no-audit --no-fund --location=global ls node-red | grep node-red | cut -d '@' -f 2 | sudo tee -a /var/log/nodered-install.log) >>/dev/null 2>&1
         echo -ne "  Install Node-RED core               $CHAR   $nrv\r\n"
 
         # install any nodes, that were installed globally, as local instead

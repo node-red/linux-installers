@@ -18,14 +18,14 @@
 # Node-RED Installer for DEB based systems
 
 umask 0022
-tgta12=12.22.9   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgta12=12.22.12   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 tgtl12=12.16.3   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta14=14.19.1   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
-tgtl14=14.19.1   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta16=16.15.0   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
-tgtl16=16.15.0   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta18=18.0.0    # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
-tgtl18=18.0.0    # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
+tgta14=14.20.0   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgtl14=14.20.0   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
+tgta16=16.16.0   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgtl16=16.16.0   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
+tgta18=18.6.0    # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgtl18=18.4.0    # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 
 usage() {
   cat << EOL
@@ -146,7 +146,7 @@ if [[ -e /mnt/dietpi_userdata ]]; then
     echo -ne "\n\033[1;32mDiet-Pi\033[0m detected - only going to add the  \033[0;36mnode-red-start, -stop, -log\033[0m  commands.\n"
     echo -ne "Flow files and other things worth backing up can be found in the \033[0;36m/mnt/dietpi_userdata/node-red\033[0m directory.\n\n"
     echo -ne "Use the  \033[0;36mdietpi-software\033[0m  command to un-install and re-install \033[38;5;88mNode-RED\033[0m.\n"
-    echo "journalctl -f -n 25 -u node-red -o cat" > /usr/bin/node-red-log
+    echo "journalctl -f -n 100 -u node-red -o cat" > /usr/bin/node-red-log
     chmod +x /usr/bin/node-red-log
     echo "systemctl stop node-red" > /usr/bin/node-red-stop
     chmod +x /usr/bin/node-red-stop

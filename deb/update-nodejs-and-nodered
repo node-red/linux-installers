@@ -387,8 +387,8 @@ case $yn in
                 echo -ne "  Using N to manage Node.js           +\r\n"
                 if sudo n $NODE_VERSION 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
                 echo -ne "  Update Node.js $NODE_VERSION                   $CHAR"
-            elif [[ "$(uname -m)" =~ "i686" ]]; then
-                echo "Using i686" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+            elif [[ "$(uname -m)" =~ "i686" ]] || [[ "$(uname -m)" =~ "x86_64" && "$(getconf LONG_BIT)" =~ "32" ]]; then
+                echo "Using 32bit nodejs" | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 curl -sSL -o /tmp/node.tgz https://unofficial-builds.nodejs.org/download/release/v$tgtl/node-v$tgtl-linux-x86.tar.gz 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 # unpack it into the correct places
                 hd=$(head -c 9 /tmp/node.tgz)
@@ -595,7 +595,7 @@ case $yn in
             if [ $(cat /proc/meminfo | grep MemTotal | cut -d ":" -f 2 | cut -d "k" -f 1 | xargs) -lt 894000 ]; then mem="256"; else mem="512"; fi
             if [ $(cat /proc/meminfo | grep MemTotal | cut -d ":" -f 2 | cut -d "k" -f 1 | xargs) -gt 1894000 ]; then mem="1024"; fi
             if [ $(cat /proc/meminfo | grep MemTotal | cut -d ":" -f 2 | cut -d "k" -f 1 | xargs) -gt 3894000 ]; then mem="2048"; fi
-            # if [ $(cat /proc/meminfo | grep MemTotal | cut -d ":" -f 2 | cut -d "k" -f 1 | xargs) -gt 7894000 ]; then mem="4096"; fi
+            if [ $(cat /proc/meminfo | grep MemTotal | cut -d ":" -f 2 | cut -d "k" -f 1 | xargs) -gt 7894000 ]; then mem="4096"; fi
             sudo sed -i 's#=512#='$mem'#;' ${SYSTEMDFILE}.temp
             sudo sed -i 's#^User=pi#User='$NODERED_USER'#;s#^Group=pi#Group='$NODERED_GROUP'#;s#^WorkingDirectory=/home/pi#WorkingDirectory='$NODERED_HOME'#;s#^EnvironmentFile=-/home/pi#EnvironmentFile=-'$NODERED_HOME'#;' ${SYSTEMDFILE}.temp
 

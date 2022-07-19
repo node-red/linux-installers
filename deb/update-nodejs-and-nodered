@@ -500,10 +500,10 @@ case $yn in
         fi
 
         if [[ "$GLOBAL" == "true" ]]; then
-            sudo npm i -g --unsafe-perm --no-progress --no-update-notifier --no-audit --no-fund node-red@"$NODERED_VERSION_SELECTION" 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; nri=${PIPESTATUS[0]}
+            sudo npm i -g --unsafe-perm --no-progress --no-update-notifier --no-audit --no-fund --loglevel=error node-red@"$NODERED_VERSION_SELECTION" 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; nri=${PIPESTATUS[0]}
             if [[ $nri -eq 0 ]]; then CHAR=$TICK; else CHAR=$CROSS; fi
         else
-            npm i -g --unsafe-perm --no-progress --no-update-notifier --no-audit --no-fund node-red@"$NODERED_VERSION_SELECTION" 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; nri=${PIPESTATUS[0]}
+            npm i -g --unsafe-perm --no-progress --no-update-notifier --no-audit --no-fund --loglevel=error node-red@"$NODERED_VERSION_SELECTION" 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; nri=${PIPESTATUS[0]}
             if [[ $nri -eq 0 ]]; then CHAR=$TICK; else CHAR=$CROSS; fi
         fi
         nrv=$(npm --no-progress --no-update-notifier --no-audit --no-fund -g ls node-red | grep node-red | cut -d '@' -f 2 | sudo tee -a /var/log/nodered-install.log) >>/dev/null 2>&1

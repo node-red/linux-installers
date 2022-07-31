@@ -25,6 +25,36 @@ The command line for installing on a RPM based OS is:
 bash <(curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/rpm/update-nodejs-and-nodered)
 ```
 
+Change e.g. set the system user and open the firewall :
+
+```bash
+curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/rpm/update-nodejs-and-nodered \
+ | bash -s --nodered-user=nodered --open-firewall
+```
+
+Command Line options:
+```
+  --help                display this help and exits.
+  --nodered-user=<user> specify the user to run as e.g. '--nodered-user=nodered'.
+  --confirm-root        install as root without asking confirmation.
+  --open_firewall       adding public firewall rule for node-red port 1880.
+  --confirm-install     confirm the installation without asking a confirmation.
+
+```
+
+Or by use of the environment variables e.g. to set service user:
+```bash
+NODERED_USER=nodered bash <(curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/rpm/update-nodejs-and-nodered)
+```
+
+Environment variables, please note that the program commanf line options takes presedence:
+```bash
+NODERED_USER=nodered
+OPEN_FIREWALL=y
+CONFIRM_ROOT=y
+CONFIRM_INSTALL=y
+```
+
 you should ensure you have the development tools installed if you are going to install extra nodes.
 
 ```

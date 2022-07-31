@@ -18,15 +18,95 @@
 
 unset NODERED_HOME
 umask 0022
+
+usage() {
+  cat << EOL
+
+Usage: $0 [options]
+
+options:
+  --help                display this help and exits.
+  --nodered-user=<user> specify the user to run as e.g. '--nodered-user=nodered'.
+  --open-firewall       adding public firewall rule for node-red port 1880.
+  --confirm-root        install as root without asking confirmation.
+  --confirm-install     confirm the installation without asking a confirmation.
+
+EOL
+}
+
+#NODE_VERSION=""
+
+if [ $# -gt 0 ]; then
+  # Parsing parameters
+  while (( "$#" )); do
+    case "$1" in
+      --help)
+        usage && exit 0
+        shift
+        ;;
+      --confirm-root)
+        CONFIRM_ROOT="y"
+        shift
+        ;;
+      --confirm-install)
+        CONFIRM_INSTALL="y"
+        shift
+        ;;
+      --open-firewall)
+        OPEN_FIREWALL="y"
+        shift
+        ;;
+      --nodered-user=*)
+        NODERED_USER="${1#*=}"
+        shift
+        ;;
+      --) # end argument parsing
+        shift
+        break
+        ;;
+      -*|--*=) # unsupported flags
+        echo "Error: Unsupported flag $1" >&2
+        exit 1
+        ;;
+    esac
+  done
+fi
+
 echo -ne "\033[2 q"
 echo -en "\n      **************************************\n"
 echo -en "      ***   \e[1;91mNode-RED\e[0;97m \e[1;97mRPM install Script\e[0m  ***\n"
 echo -en "      **************************************\n"
 
-if [ -n "$NODERED_USER" ]
-  then
-    echo -en "\nThe variable \e[1;33m'\$NODERED_USER'\e[0m is set as \e[1;32m'$NODERED_USER'\e[0m\r\n\r\n"
-    read -p $'\e[0;97mAre you really sure you want to install as the target user \e[1;32m'"'$NODERED_USER'"$'\e[0;97m? (y/N) ?\e[0m' yn
+# sanitize environment
+case "${CONFIRM_ROOT}" in
+      [Yy]* )
+      export CONFIRM_ROOT=y
+      ;;
+      [Nn]* )
+      export CONFIRM_ROOT=n
+      ;;
+      * )
+      export CONFIRM_ROOT=n
+      ;;
+esac
+
+case "${CONFIRM_INSTALL}" in
+      [Yy]* )
+      export CONFIRM_INSTALL=y
+      ;;
+      [Nn]* )
+      export CONFIRM_INSTALL=n
+      ;;
+      * )
+      export CONFIRM_INSTALL=n
+      ;;
+esac
+
+# user requested, not root
+if [[ -n "${NODERED_USER}" ]] &&  [[ "${NODERED_USER}" != "root" ]] && [[ "${CONFIRM_INSTALL}" == "n" ]]
+then
+    echo -en "\nThe sytem user is requested as \e[1;32m'${NODERED_USER}'\e[0m\r\n\r\n"
+    read -p $'\e[0;97mAre you really sure you want to install as the target user \e[1;32m'"'${NODERED_USER}'"$'\e[0;97m? [\e[1;32my\e[0m/N] ?\e[0m' yn
     case $yn in
       [Yy]* )
       ;;
@@ -34,11 +114,26 @@ if [ -n "$NODERED_USER" ]
         exit
       ;;
     esac
-  fi
+fi
 
-if [ -z "$NODERED_USER" ]
-  then echo -en "\e[0;97m\nThe \"\e[1;33m\$NODERED_USER\e[0;97m\" variable is not set and this script is run as user '\e[1;33m$USER\e[0;97m'.\r\n\r\n"
-  read -p $'\e[0;97mWould you like to change to the recommended the target user to \e[1;92m\'nodered\'\e[0;97m? (\e[1;32my\e[0m/N) ' yn
+# user root requested
+if [[ -n "${NODERED_USER}" ]] &&  [[ "${NODERED_USER}" == "root" ]] && [[ "${CONFIRM_ROOT}" == "n" ]]
+then
+    echo -en "\nThe sytem user is requested as \e[1;33m'${NODERED_USER}'\e[0m\r\n\r\n"
+    read -p $'\e[0;97mAre you really sure you want to install as the target user \e[1;33m'"'${NODERED_USER}'"$'\e[0;97m? [\e[1;33my\e[0m/N] ?\e[0m' yn
+    case $yn in
+      [Yy]* )
+      ;;
+      * )
+        exit
+      ;;
+    esac
+fi
+
+# no user requested, default to the current non root user
+if [[ "${EUID}" != "0" ]] && [[ -z "$NODERED_USER" ]] && [[ "${CONFIRM_INSTALL}" == "n" ]]
+  then echo -en "\e[0;97m\nNo user has been set, this script is run as user '\e[1;33m${USER}\e[0;97m'.\r\n\r\n"
+  read -p $'\e[0;97mWould you like to change to the recommended the target user to \e[1;32m\'nodered\'\e[0;97m? [\e[1;32my\e[0m/N] ' yn
   case $yn in
     [Yy]* )
     export NODERED_USER=nodered
@@ -48,9 +143,11 @@ if [ -z "$NODERED_USER" ]
   esac
 fi
 
-if [ "$EUID" == "0" ] && [ -z "$NODERED_USER" ]
-  then echo -en "\nThe \e[1;91mroot\e[0m user is detected as the target user for node-red install.\r\n\r\n"
-  read -p $'\e[0;97mAre you really sure you want to install as the target user \e[1;91mroot\e[0;97m ? (y/N) ?\e[0m' yn
+# no user requested, default to the current root user
+if [[ "${EUID}" == "0" ]] && [[ -z "${NODERED_USER}" ]] && [[ "${CONFIRM_ROOT}" == "n" ]]
+then
+  echo -en "\nThe current user \e[1;33mroot\e[0m defaults as the target user for node-red install.\r\n\r\n"
+  read -p $'\e[0;97mAre you really sure you want to install as the target user \e[1;31mroot\e[0;97m ? [\e[1;31my\e[0;97m/N] ?\e[0m' yn
   case $yn in
     [Yy]* )
     [[ -n "$NODERED_HOME" ]] || export NODERED_HOME=/root;
@@ -61,22 +158,64 @@ if [ "$EUID" == "0" ] && [ -z "$NODERED_USER" ]
   esac
 fi
 
-[[ -n "$NODERED_USER" ]] || export NODERED_USER=$USER;
 
-OPENFW="NO"
-read -r -t 15 -p $'\e[0;97mWould you like to add Node-RED port 1880 to the firewall public zone ? [y/N] ? ' response
-if [[ "$response" =~ ^([yY])+$ ]]; then
-    OPENFW="YES"
+
+
+if [[ -z "$OPEN_FIREWALL" ]] && [[ "${CONFIRM_INSTALL}" == "n" ]]
+then
+  OPEN_FIREWALL="n"
+  read -r -t 15 -p $'\e[0;97mWould you like to add Node-RED port \e[34m1880\e[0;97m to the \e[1;34mfirewall\e[0;97m public zone ? [\e[1;34my\e[0;97m/N] ? ' response
+  if [[ "$response" =~ ^([yY])+$ ]]; then
+      OPEN_FIREWALL="y"
+  fi
+fi
+# sanitize environment variable OPEN_FIREWALL
+case "${OPEN_FIREWALL}" in
+      [Yy]* )
+      export OPEN_FIREWALL=y
+      ;;
+      [Nn]* )
+      export OPEN_FIREWALL=n
+      ;;
+      * )
+      export OPEN_FIREWALL=n
+      ;;
+esac
+
+# this script assumes that $HOME is the folder of the user that runs node-red
+# that $USER is the user name and the group name to use when running is the
+# primary group of that user
+# if this is not correct then edit the lines below
+[[ -n "${NODERED_USER}" ]] || export NODERED_USER=$USER;
+[[ -n "${NODERED_HOME}" ]] || export NODERED_HOME="/home/${NODERED_USER}"
+
+
+# check internet, if failure exit
+if curl -f https://www.npmjs.com/package/node-red  >/dev/null 2>&1
+then
+  echo " "
+else
+  echo " "
+  echo "Sorry - cannot connect to internet - not going to touch anything."
+  echo "https://www.npmjs.com/package/node-red   is not reachable."
+  echo "Please ensure you have a working internet connection."
+  echo " "
+  exit 1
 fi
 
-if curl -f https://www.npmjs.com/package/node-red  >/dev/null 2>&1; then
+# final install details
 host=`hostname`
-echo -e '\033]2;'$host : Node-RED update'\007'
+echo -e "\e[1;33m ${host}\e[0m : \e[1;97mNode-RED update \e[0;97m"
 echo " "
-echo -e "This script will do an install of node.js, Node-RED "
-echo -e " and the service packages to auto-run Node-RED to run as user \e[1;33m'$NODERED_USER'\e[0m"
+echo -e "This script will do an install of node.js and \e[1;91mNode-RED\e[0;97m"
+echo -e " with the service to auto-run as user \e[1;33m'$NODERED_USER'\e[0m"
+echo -e " in the home directory \e[1;37m'$NODERED_HOME'\e[0m"
+[[ "$OPEN_FIREWALL" == "y" ]] && echo -e " with public \e[1;34mfirewall\e[0;97m port \e[34m1880\e[0;97m opened."
 echo " "
-read -p $'\e[0;97mAre you really sure you want to do this ? [y/N] ?\e[0m' yn
+
+# final confirmation of the install
+yn="${CONFIRM_INSTALL}"
+[[ "${yn}" == "y" ]] || read -p $'\e[1;97mAre you really \e[0m\e[1;32msure\e[1;97m you want to do this ?  [\e[1;32my\e[1;97m/N] ?\e[0m' yn
 case $yn in
     [Yy]* )
         sudo ()
@@ -84,13 +223,6 @@ case $yn in
             [[ $EUID = 0 ]] || set -- command sudo "$@"
             "$@"
         }
-        echo ""
-        # this script assumes that $HOME is the folder of the user that runs node-red
-        # that $USER is the user name and the group name to use when running is the
-        # primary group of that user
-        # if this is not correct then edit the lines below
-        [[ -n "$NODERED_USER" ]] || export NODERED_USER=$USER;
-        [[ -n "$NODERED_HOME" ]] || export NODERED_HOME=/home/$NODERED_USER;
         sudo useradd $NODERED_USER
         NODERED_GROUP=`id -gn $NODERED_USER`
         MYOS=$(cat /etc/*release | grep "^ID=" | cut -d = -f 2)
@@ -255,7 +387,7 @@ EOF
         sudo systemctl daemon-reload 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
         echo -ne "  Update systemd script               $CHAR\r\n"
 
-        if [[ $OPENFW == "YES" ]]; then
+        if [[ $OPEN_FIREWALL == "y" ]]; then
             echo "Now add firewall rule for 1880" | sudo tee -a /var/log/nodered-install.log >>/dev/null
             if sudo curl -sL -o /etc/firewalld/services/nodered.xml https://raw.githubusercontent.com/node-red/linux-installers/master/resources/nodered.xml 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
             sudo firewall-cmd --zone=public --add-service=nodered 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
@@ -279,11 +411,4 @@ EOF
         exit 1
     ;;
 esac
-else
-echo " "
-echo "Sorry - cannot connect to internet - not going to touch anything."
-echo "https://www.npmjs.com/package/node-red   is not reachable."
-echo "Please ensure you have a working internet connection."
-echo " "
-exit 1
-fi
+

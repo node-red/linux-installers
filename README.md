@@ -16,6 +16,8 @@ you should ensure you have the build tools installed if you are going to install
 sudo apt install build-essential
 ```
 
+There are lots of command line options available - add ` --help` to the end of the command above to see them all.
+
 
 ### Red Hat, Fedora, CentOS, Oracle Linux
 

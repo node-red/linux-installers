@@ -16,14 +16,141 @@
 
 # Node-RED Installer for RPM based systems
 
+unset NODERED_HOME
 umask 0022
-echo -ne "\033[2 q"
 
-if [ "$EUID" == "0" ]
-  then echo -en "\nRoot user detected. Typically install as a normal user. No need for sudo.\r\n\r\n"
-  read -p "Are you really sure you want to install as root ? (y/N) ? " yn
+usage() {
+  cat << EOL
+
+Usage: $0 [options]
+
+options:
+  --help                display this help and exits.
+  --nodered-user=<user> specify the user to run as e.g. '--nodered-user=nodered'.
+  --open-firewall       adding public firewall rule for node-red port 1880.
+  --confirm-root        install as root without asking confirmation.
+  --confirm-install     confirm the installation without asking a confirmation.
+
+EOL
+}
+
+#NODE_VERSION=""
+
+if [ $# -gt 0 ]; then
+  # Parsing parameters
+  while (( "$#" )); do
+    case "$1" in
+      --help)
+        usage && exit 0
+        shift
+        ;;
+      --confirm-root)
+        CONFIRM_ROOT="y"
+        shift
+        ;;
+      --confirm-install)
+        CONFIRM_INSTALL="y"
+        shift
+        ;;
+      --open-firewall)
+        OPEN_FIREWALL="y"
+        shift
+        ;;
+      --nodered-user=*)
+        NODERED_USER="${1#*=}"
+        shift
+        ;;
+      --) # end argument parsing
+        shift
+        break
+        ;;
+      -*|--*=) # unsupported flags
+        echo "Error: Unsupported flag $1" >&2
+        exit 1
+        ;;
+    esac
+  done
+fi
+
+echo -ne "\033[2 q"
+echo -en "\n      **************************************\n"
+echo -en "      ***   \e[1;91mNode-RED\e[0;97m \e[1;97mRPM install Script\e[0m  ***\n"
+echo -en "      **************************************\n"
+
+# sanitize environment
+case "${CONFIRM_ROOT}" in
+      [Yy]* )
+      export CONFIRM_ROOT=y
+      ;;
+      [Nn]* )
+      export CONFIRM_ROOT=n
+      ;;
+      * )
+      export CONFIRM_ROOT=n
+      ;;
+esac
+
+case "${CONFIRM_INSTALL}" in
+      [Yy]* )
+      export CONFIRM_INSTALL=y
+      ;;
+      [Nn]* )
+      export CONFIRM_INSTALL=n
+      ;;
+      * )
+      export CONFIRM_INSTALL=n
+      ;;
+esac
+
+# user requested, not root
+if [[ -n "${NODERED_USER}" ]] &&  [[ "${NODERED_USER}" != "root" ]] && [[ "${CONFIRM_INSTALL}" == "n" ]]
+then
+    echo -en "\nThe sytem user is requested as \e[1;32m'${NODERED_USER}'\e[0m\r\n\r\n"
+    read -p $'\e[0;97mAre you really sure you want to install as the target user \e[1;32m'"'${NODERED_USER}'"$'\e[0;97m? [\e[1;32my\e[0m/N] ?\e[0m' yn
+    case $yn in
+      [Yy]* )
+      ;;
+      * )
+        exit
+      ;;
+    esac
+fi
+
+# user root requested
+if [[ -n "${NODERED_USER}" ]] &&  [[ "${NODERED_USER}" == "root" ]] && [[ "${CONFIRM_ROOT}" == "n" ]]
+then
+    echo -en "\nThe sytem user is requested as \e[1;33m'${NODERED_USER}'\e[0m\r\n\r\n"
+    read -p $'\e[0;97mAre you really sure you want to install as the target user \e[1;33m'"'${NODERED_USER}'"$'\e[0;97m? [\e[1;33my\e[0m/N] ?\e[0m' yn
+    case $yn in
+      [Yy]* )
+      ;;
+      * )
+        exit
+      ;;
+    esac
+fi
+
+# no user requested, default to the current non root user
+if [[ "${EUID}" != "0" ]] && [[ -z "${NODERED_USER}" ]] && [[ "${CONFIRM_INSTALL}" == "n" ]]
+  then echo -en "\e[0;97m\nNo user has been set, this script is run as user '\e[1;33m${USER}\e[0;97m'.\r\n\r\n"
+  read -p $'\e[0;97mWould you like to change to the recommended the target user to \e[1;32m\'nodered\'\e[0;97m? [\e[1;32my\e[0m/N] ' yn
   case $yn in
     [Yy]* )
+    export NODERED_USER=nodered
+    ;;
+    * )
+    ;;
+  esac
+fi
+
+# no user requested, default to the current root user
+if [[ "${EUID}" == "0" ]] && [[ -z "${NODERED_USER}" ]] && [[ "${CONFIRM_ROOT}" == "n" ]]
+then
+  echo -en "\nThe current user \e[1;33mroot\e[0m defaults as the target user for node-red install.\r\n\r\n"
+  read -p $'\e[0;97mAre you really sure you want to install as the target user \e[1;31mroot\e[0;97m ? [\e[1;31my\e[0;97m/N] ?\e[0m' yn
+  case $yn in
+    [Yy]* )
+    [[ -n "${NODERED_HOME}" ]] || export NODERED_HOME=/root;
     ;;
     * )
       exit
@@ -31,41 +158,76 @@ if [ "$EUID" == "0" ]
   esac
 fi
 
-OPENFW="NO"
-read -r -t 15 -p "Would you like to add Node-RED port 1880 to the firewall public zone ? [y/N] ? " response
-if [[ "$response" =~ ^([yY])+$ ]]; then
-    OPENFW="YES"
+
+
+
+if [[ -z "${OPEN_FIREWALL}" ]] && [[ "${CONFIRM_INSTALL}" == "n" ]]
+then
+  OPEN_FIREWALL="n"
+  read -r -t 15 -p $'\e[0;97mWould you like to add Node-RED port \e[34m1880\e[0;97m to the \e[1;34mfirewall\e[0;97m public zone ? [\e[1;34my\e[0;97m/N] ? ' response
+  if [[ "$response" =~ ^([yY])+$ ]]; then
+      OPEN_FIREWALL="y"
+  fi
+fi
+# sanitize environment variable OPEN_FIREWALL
+case "${OPEN_FIREWALL}" in
+      [Yy]* )
+      export OPEN_FIREWALL=y
+      ;;
+      [Nn]* )
+      export OPEN_FIREWALL=n
+      ;;
+      * )
+      export OPEN_FIREWALL=n
+      ;;
+esac
+
+# this script assumes that $HOME is the folder of the user that runs node-red
+# that $USER is the user name and the group name to use when running is the
+# primary group of that user
+# if this is not correct then edit the lines below
+[[ -n "${NODERED_USER}" ]] || export NODERED_USER=$USER;
+[[ -n "${NODERED_HOME}" ]] || export NODERED_HOME="/home/${NODERED_USER}"
+
+
+# check internet, if failure exit
+if curl -f https://www.npmjs.com/package/node-red  >/dev/null 2>&1
+then
+  echo " "
+else
+  echo " "
+  echo "Sorry - cannot connect to internet - not going to touch anything."
+  echo "https://www.npmjs.com/package/node-red   is not reachable."
+  echo "Please ensure you have a working internet connection."
+  echo " "
+  exit 1
 fi
 
-if curl -f https://www.npmjs.com/package/node-red  >/dev/null 2>&1; then
+# final install details
 host=`hostname`
-echo -e '\033]2;'$host : Node-RED update'\007'
+echo -e "\e[1;33m ${host}\e[0m : \e[1;97mNode-RED update \e[0;97m"
 echo " "
-echo "This script will do an install of node.js, Node-RED and the service packages to auto-run Node-RED"
+echo -e "This script will do an install of node.js and \e[1;91mNode-RED\e[0;97m"
+echo -e " with the service to auto-run as user \e[1;33m'${NODERED_USER}'\e[0m"
+echo -e " in the home directory \e[1;37m'${NODERED_HOME}'\e[0m"
+[[ "${OPEN_FIREWALL}" == "y" ]] && echo -e " with public \e[1;34mfirewall\e[0;97m port \e[34m1880\e[0;97m opened."
 echo " "
 
-read -p "Are you really sure you want to do this ? [y/N] ? " yn
-case $yn in
+# final confirmation of the install
+yn="${CONFIRM_INSTALL}"
+[[ "${yn}" == "y" ]] || read -p $'\e[1;97mAre you really \e[0m\e[1;32msure\e[1;97m you want to do this ?  [\e[1;32my\e[1;97m/N] ?\e[0m' yn
+case "${yn}" in
     [Yy]* )
-        echo ""
-
-        # this script assumes that $HOME is the folder of the user that runs node-red
-        # that $USER is the user name and the group name to use when running is the
-        # primary group of that user
-        # if this is not correct then edit the lines below
-        NODERED_HOME=$HOME
-        NODERED_USER=$USER
-        NODERED_GROUP=`id -gn`
-
         sudo ()
         {
             [[ $EUID = 0 ]] || set -- command sudo "$@"
             "$@"
         }
-
+        sudo useradd ${NODERED_USER}
+        NODERED_GROUP=`id -gn ${NODERED_USER}`
         MYOS=$(cat /etc/*release | grep "^ID=" | cut -d = -f 2)
         versions='fedora"centos"rhel"ol"almalinux"rocky"miraclelinux"'
-        if [[ $versions != *"$MYOS"* ]]; then
+        if [[ $versions != *"${MYOS}"* ]]; then
             echo " "
             echo "Doesn't seem to be running on RedHat, Centos, Fedora, Rocky, Alma, Oracle Linux, or MIRACLE LINUX so quitting"
             echo " "
@@ -74,9 +236,9 @@ case $yn in
         GLOBAL="true"
         TICK='\033[1;32m\u2714\033[0m'
         CROSS='\033[1;31m\u2718\033[0m'
-        cd "$NODERED_HOME" || exit 1
+        sudo cd "${NODERED_HOME}" || exit 1
         clear
-        echo -e '\nRunning nodejs and Node-RED install for user '$USER' at '$HOME' on '$MYOS'\n'
+        echo -e "\n\e[0;97mRunning nodejs and Node-RED install for user '\e[1;33m${NODERED_USER}\e[0;97m' at '${NODERED_HOME}' on ${MYOS}\e[0m\n"
         time1=$(date)
         echo "" | sudo tee -a /var/log/nodered-install.log >>/dev/null
         echo "***************************************" | sudo tee -a /var/log/nodered-install.log >>/dev/null
@@ -98,9 +260,9 @@ case $yn in
         echo -ne "  Stop Node-RED                       $CHAR\r\n"
 
         # ensure ~/.config dir is owned by the user
-        sudo chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.config/
+        sudo chown -Rf ${NODERED_USER}:${NODERED_GROUP} ${NODERED_HOME}/.config
         echo "Now install nodejs" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-        if [ $MYOS = "fedora" ] || [ $MYOS = "almalinux" ] || [ $MYOS = "rocky" ] || [ $MYOS = "miraclelinux" ]; then
+        if [ "${MYOS}" = "fedora" ] || [ "${MYOS}" = "almalinux" ] || [ "${MYOS}" = "rocky" ] || [ "${MYOS}" = "miraclelinux" ]; then
             sudo dnf module reset -y nodejs 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
             if sudo dnf module install -y nodejs:14/default 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
         else
@@ -129,20 +291,18 @@ case $yn in
 
         # and install Node-RED
         echo "Now install Node-RED" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-        if [[ $GLOBAL == "true" ]]; then
-            if sudo npm i -g --unsafe-perm --no-progress node-red@latest 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
-        else
-            if npm i -g --unsafe-perm --no-progress node-red@latest 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
-        fi
+        if sudo npm i -g --unsafe-perm --no-progress node-red@latest 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
         nrv=$(npm --no-progress -g ls node-red | grep node-red | cut -d '@' -f 2 | sudo tee -a /var/log/nodered-install.log) >>/dev/null 2>&1
         echo -ne "  Install Node-RED core               $CHAR   $nrv\r\n"
 
         echo "Now create basic package.json for the user" | sudo tee -a /var/log/nodered-install.log >>/dev/null
-        mkdir -p "$NODERED_HOME/.node-red/node_modules"
-        sudo chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.node-red/ 2>&1 >>/dev/null
-        pushd "$NODERED_HOME/.node-red" 2>&1 >>/dev/null
-            npm config set update-notifier false 2>&1 >>/dev/null
-            if [ ! -f "package.json" ]; then
+        sudo lastlog -u ${NODERED_USER} -C >>/dev/null 2>&1
+        sudo su - ${NODERED_USER} <<'EOF'
+             cd
+	     mkdir -p ".node-red/node_modules"
+             cd .node-red
+             npm config set update-notifier false #2>&1 >>/dev/null
+             if [ ! -f "package.json" ]; then
                 echo '{' > package.json
                 echo '  "name": "node-red-project",' >> package.json
                 echo '  "description": "initially created for you by Node-RED '$nrv'",' >> package.json
@@ -151,12 +311,11 @@ case $yn in
                 echo '  }' >> package.json
                 echo '}' >> package.json
             fi
-        popd 2>&1 >>/dev/null
-        sudo chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.npm 2>&1 >>/dev/null
-
+EOF
         echo "Now add start/stop/reload/log scripts" | sudo tee -a /var/log/nodered-install.log >>/dev/null
         sudo mkdir -p /usr/bin
-        if curl -f https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-icon.svg >/dev/null 2>&1; then
+        if curl -f https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-icon.svg >/dev/null 2>&1
+        then
             sudo curl -sL -o /usr/bin/node-red-start https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-start.rpm 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
             sudo curl -sL -o /usr/bin/node-red-stop https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-stop 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
             sudo curl -sL -o /usr/bin/node-red-restart https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-restart 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
@@ -173,39 +332,62 @@ case $yn in
             echo -ne "  Add shortcut commands               $CROSS\r\n"
         fi
 
-        # add systemd script and configure it for $NODERED_USER
-        echo "Now add systemd script and configure it for $NODERED_USER:$NODERED_GROUP @ $NODERED_HOME" | sudo tee -a /var/log/nodered-install.log >>/dev/null
+        # add systemd script and configure it for ${NODERED_USER}
+        echo "Now add systemd script and configure it for ${NODERED_USER}:${NODERED_GROUP} @ ${NODERED_HOME}" | sudo tee -a /var/log/nodered-install.log >>/dev/null
 
         # check if systemd script already exists
         SYSTEMDFILE="/etc/systemd/system/nodered.service"
 
         if sudo curl -sL -o ${SYSTEMDFILE}.temp https://raw.githubusercontent.com/node-red/linux-installers/master/resources/nodered.service 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
-        # set the User Group and WorkingDirectory in nodered.service
-        sudo sed -i 's#^User=pi#User='$NODERED_USER'#;s#^Group=pi#Group='$NODERED_GROUP'#;s#^WorkingDirectory=/home/pi#WorkingDirectory='$NODERED_HOME'#;' ${SYSTEMDFILE}.temp
+        # set the User,Group,EnvironmentFile and WorkingDirectory in nodered.service
+        sudo sed -i 's#^User=pi#User='${NODERED_USER}'#;
+                     s#^Group=pi#Group='${NODERED_GROUP}'#;
+                     s#^WorkingDirectory=/home/pi#WorkingDirectory='${NODERED_HOME}'#;
+                     s#^EnvironmentFile=-/home/pi/.node-red#EnvironmentFile=-/etc/node-red#;
+                     s!^Environment="NODE_OPTIONS=--max_old_space_size=512"!#Environment="NODE_OPTIONS=--max_old_space_size=512"!' ${SYSTEMDFILE}.temp
 
-        if test -f "$SYSTEMDFILE"; then
-            
+        if test -f "${SYSTEMDFILE}"; then
             # there's already a systemd script
-            EXISTING_FILE=$(md5sum $SYSTEMDFILE | awk '$1 "${SYSTEMDFILE}" {print $1}');
+            EXISTING_FILE=$(md5sum ${SYSTEMDFILE} | awk '$1 "${SYSTEMDFILE}" {print $1}');
             TEMP_FILE=$(md5sum ${SYSTEMDFILE}.temp | awk '$1 "${SYSTEMDFILE}.temp" {print $1}');
 
             if [[ $EXISTING_FILE == $TEMP_FILE ]];
             then
                 : # silent procedure
             else
-                echo "Customized systemd script found @ $SYSTEMDFILE. To prevent loss of modifications, we'll not recreate the systemd script." | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                echo "Customized systemd script found @ ${SYSTEMDFILE}. To prevent loss of modifications, we'll not recreate the systemd script." | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 echo "If you want the installer to recreate the systemd script, please delete or rename the current script & re-run the installer." | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 CHAR="-   Skipped - existing script is customized."
             fi
             sudo rm ${SYSTEMDFILE}.temp
         else
-            sudo mv ${SYSTEMDFILE}.temp $SYSTEMDFILE
+            sudo mv ${SYSTEMDFILE}.temp ${SYSTEMDFILE}
         fi
+        # make environment file for systemd
+       	sudo mkdir -p /etc/node-red
+        if test ! -f /etc/node-red/environment; then
+          echo "# Node-RED EnvironmentFile for Systemd Service" | sudo tee -a /etc/node-red/environment >>/dev/null
+          echo "#  after edit this file  `sudo systemctl restart nodered` to reload Node-red with the new options" | sudo tee -a /etc/node-red/environment >>/dev/null
 
+          echo "" | sudo tee -a /etc/node-red/environment >>/dev/null
+          echo "# uncomment and edit if running on low memory resource hardware" | sudo tee -a /etc/node-red/environment >>/dev/null
+          echo "#NODE_OPTIONS=--max_old_space_size=512" | sudo tee -a /etc/node-red/environment >>/dev/null
+
+          echo "" | sudo tee -a /etc/node-red/environment >>/dev/null
+          echo "# uncomment next line and edit if you need an http proxy" | sudo tee -a /etc/node-red/environment >>/dev/null
+          echo "#HTTP_PROXY=my.httpproxy.server.address" | sudo tee -a /etc/node-red/environment >>/dev/null
+
+          echo "" | sudo tee -a /etc/node-red/environment >>/dev/null
+          echo "# uncomment the next line for a more verbose log output" | sudo tee -a /etc/node-red/environment >>/dev/null
+          echo "#NODE_RED_OPTIONS=-v" | sudo tee -a /etc/node-red/environment >>/dev/null
+          echo "" | sudo tee -a /etc/node-red/environment >>/dev/null
+
+          echo "Created /etc/node-red/environment for systed service." | sudo tee -a /var/log/nodered-install.log >>/dev/null
+       fi
         sudo systemctl daemon-reload 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
         echo -ne "  Update systemd script               $CHAR\r\n"
 
-        if [[ $OPENFW == "YES" ]]; then
+        if [[ ${OPEN_FIREWALL} == "y" ]]; then
             echo "Now add firewall rule for 1880" | sudo tee -a /var/log/nodered-install.log >>/dev/null
             if sudo curl -sL -o /etc/firewalld/services/nodered.xml https://raw.githubusercontent.com/node-red/linux-installers/master/resources/nodered.xml 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
             sudo firewall-cmd --zone=public --add-service=nodered 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
@@ -219,11 +401,7 @@ case $yn in
         fi
         echo -ne "\r\n\r\n\r\n"
         echo -ne "All done.\r\n"
-        if [[ $GLOBAL == "true" ]]; then
-            echo -ne "  You can now start Node-RED with the command  \033[0;36mnode-red-start\033[0m\r\n"
-        else
-            echo -ne "  You can now start Node-RED with the command  \033[0;36m./node-red\033[0m\r\n"
-        fi
+        echo -ne "  You can now start Node-RED with the command  \033[0;36mnode-red-start\033[0m\r\n"
         echo -ne "  Then point your browser to \033[0;36mlocalhost:1880\033[0m or \033[0;36mhttp://{your_ip-address}:1880\033[0m\r\n"
         echo -ne "\r\nStarted  $time1  -  Finished  $(date)\r\n\r\n"
         echo "Finished : "$time1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
@@ -233,11 +411,4 @@ case $yn in
         exit 1
     ;;
 esac
-else
-echo " "
-echo "Sorry - cannot connect to internet - not going to touch anything."
-echo "https://www.npmjs.com/package/node-red   is not reachable."
-echo "Please ensure you have a working internet connection."
-echo " "
-exit 1
-fi
+

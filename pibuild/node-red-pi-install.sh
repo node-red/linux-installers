@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2016,2021 OpenJS Foundation and other contributors, https://openjsf.org/
+# Copyright 2016,2022 OpenJS Foundation and other contributors, https://openjsf.org/
 # Copyright 2015,2016 IBM Corp.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");

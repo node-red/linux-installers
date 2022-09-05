@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2016,2021 OpenJS Foundation and other contributors, https://openjsf.org/
+# Copyright 2016,2022 OpenJS Foundation and other contributors, https://openjsf.org/
 # Copyright 2015,2016 IBM Corp.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -146,14 +146,14 @@ echo " A graphical flow editor for event driven applications." | sudo tee -a con
 echo " Runs on Node.js - using a browser for the user interface." | sudo tee -a control
 echo " See http://nodered.org for more information, documentation and examples." | sudo tee -a control
 echo " ." | sudo tee -a control
-echo " Copyright 2017,2021 OpenJS Foundation and other contributors, https://openjsf.org/" | sudo tee -a control
+echo " Copyright 2017,2022 OpenJS Foundation and other contributors, https://openjsf.org/" | sudo tee -a control
 echo " Copyright 2015,2017 IBM Corp." | sudo tee -a control
 echo " Licensed under the Apache License, Version 2.0" | sudo tee -a control
 echo " http://www.apache.org/licenses/LICENSE-2.0" | sudo tee -a control
 
 echo "service nodered stop >/dev/null 2>&1; exit 0" | sudo tee preinst
 # echo "npm i -g npm@latest >/dev/null 2>&1; exit 0" | sudo tee postinst
-echo "hash -r >/dev/null 2>&1; exit 0" | sudo tee postinst
+echo 'sed -i "s#^User=pi#User=$SUDO_USER#;s#^Group=pi#Group=$SUDO_USER#;s#^WorkingDirectory=/home/pi#WorkingDirectory=/home/$SUDO_USER#;s#^EnvironmentFile=-/home/pi#EnvironmentFile=-/home/$SUDO_USER#" /usr/lib/systemd/system/nodered.service; hash -r >/dev/null 2>&1; exit 0' | sudo tee postinst
 echo "service nodered stop >/dev/null 2>&1; exit 0" | sudo tee prerm
 echo "rm -rf /usr/lib/node_modules/node-red* /usr/bin/node-red* /usr/share/applications/Node-RED.desktop /usr/share/icons/hicolor/scalable/apps/node-red-icon.svg >/dev/null 2>&1; exit 0" | sudo tee postrm
 # echo "rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm && hash -r >/dev/null 2>&1; exit 0" | sudo tee postrm
@@ -163,7 +163,7 @@ sudo chmod 0755 preinst postinst prerm postrm
 cd ../usr/share
 sudo mkdir -p doc/nodered
 cd doc/nodered
-echo " Copyright 2017-2021 OpenJS Foundation and other contributors, https://openjsf.org/" | sudo tee copyright
+echo " Copyright 2017-2022 OpenJS Foundation and other contributors, https://openjsf.org/" | sudo tee copyright
 echo "nodered ($VER) unstable; urgency=low" | sudo tee changelog
 echo "  * Point release." | sudo tee -a changelog
 echo " -- DCJ <ceejay@vnet.ibm.com>  $(date '+%a, %d %b %Y %H:%M:%S +0000')" | sudo tee -a changelog

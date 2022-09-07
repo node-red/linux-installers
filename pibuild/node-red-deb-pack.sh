@@ -152,10 +152,12 @@ echo " Licensed under the Apache License, Version 2.0" | sudo tee -a control
 echo " http://www.apache.org/licenses/LICENSE-2.0" | sudo tee -a control
 
 echo "service nodered stop >/dev/null 2>&1; exit 0" | sudo tee preinst
-# echo "npm i -g npm@latest >/dev/null 2>&1; exit 0" | sudo tee postinst
-echo 'sed -i "s#^User=pi#User=$SUDO_USER#;s#^Group=pi#Group=$SUDO_USER#;s#^WorkingDirectory=/home/pi#WorkingDirectory=/home/$SUDO_USER#;s#^EnvironmentFile=-/home/pi#EnvironmentFile=-/home/$SUDO_USER#" /usr/lib/systemd/system/nodered.service; hash -r >/dev/null 2>&1; exit 0' | sudo tee postinst
+echo "sync" | sudo tee postinst
+echo 'sed -i "s#^User=.*#User=$SUDO_USER#;s#^Group=.*#Group=$SUDO_USER#;s#^WorkingDirectory=.*#WorkingDirectory=/home/$SUDO_USER#;s#^EnvironmentFile=.*#EnvironmentFile=-/home/$SUDO_USER/.node-red/environment#" /usr/lib/systemd/system/nodered.service' | sudo tee -a postinst
+echo 'hash -r >/dev/null 2>&1' | sudo tee -a postinst
+echo 'exit 0' | sudo tee -a postinst
 echo "service nodered stop >/dev/null 2>&1; exit 0" | sudo tee prerm
-echo "rm -rf /usr/lib/node_modules/node-red* /usr/bin/node-red* /usr/share/applications/Node-RED.desktop /usr/share/icons/hicolor/scalable/apps/node-red-icon.svg >/dev/null 2>&1; exit 0" | sudo tee postrm
+# echo "rm -rf /usr/lib/node_modules/node-red* /usr/bin/node-red* /usr/share/applications/Node-RED.desktop /usr/share/icons/hicolor/scalable/apps/node-red-icon.svg >/dev/null 2>&1; exit 0" | sudo tee postrm
 # echo "rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm && hash -r >/dev/null 2>&1; exit 0" | sudo tee postrm
 echo "export DISPLAY=:0 && lxpanelctl restart >/dev/null 2>&1; exit 0" | sudo tee postrm
 sudo chmod 0755 preinst postinst prerm postrm

@@ -154,7 +154,7 @@ echo " Licensed under the Apache License, Version 2.0" | sudo tee -a control
 echo " http://www.apache.org/licenses/LICENSE-2.0" | sudo tee -a control
 
 echo "service nodered stop >/dev/null 2>&1; exit 0" | sudo tee preinst
-echo 'sync >/dev/null 2>&1' | sudo tee postinst
+echo 'sync' | sudo tee postinst
 echo 'hash -r >/dev/null 2>&1' | sudo tee -a postinst
 echo 'sed -i "s#^User=.*#User=$SUDO_USER#;s#^Group=.*#Group=$SUDO_USER#;s#^WorkingDirectory=.*#WorkingDirectory=/home/$SUDO_USER#;s#^EnvironmentFile=.*#EnvironmentFile=-/home/$SUDO_USER/.node-red/environment#" /usr/lib/systemd/system/nodered.service' | sudo tee -a postinst
 echo 'exit 0' | sudo tee -a postinst

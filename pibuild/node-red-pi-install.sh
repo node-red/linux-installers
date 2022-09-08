@@ -25,16 +25,10 @@ sudo rm -rf /usr/local/bin/update-nodejs-and-nodered
 sudo rm -rf /home/pi/.npm /home/pi/.node-gyp
 sudo rm -rf /root/.npm /root/.node-gyp
 sudo rm -rf /etc/apt/sources.list.d/nodesource.list
+
 # can remove next line if already updated....
 sudo apt-get update
-
-# sudo apt-get install nodejs nodejs-legacy npm lintian
-
 sudo apt-get install -y build-essential nodejs npm lintian
-# sudo npm install -g --unsafe-perm npm@6
-# Get node.js 4.8.2 to match stretch ... for now
-#wget https://nodejs.org/download/release/v4.8.2/node-v4.8.2-linux-armv6l.tar.gz -O /tmp/node.tgz
-#sudo tar -zxf /tmp/node.tgz --strip-components=1 -C /usr
 
 hash -r
 sudo npm cache clean --force
@@ -80,7 +74,7 @@ popd
 mkdir -p ~/.node-red
 #sudo npm install -g --unsafe-perm --no-progress node-red-admin
 echo "Node-RED installed. Adding a few extra nodes"
-sudo npm install -g --unsafe-perm --no-progress node-red-node-pi-gpio node-red-node-random node-red-node-ping node-red-node-smooth node-red-contrib-play-audio node-red-node-serialport
+sudo npm install -g --unsafe-perm --no-progress node-red-node-pi-gpio node-red-node-random node-red-node-ping node-red-node-smooth node-red-contrib-play-audio node-red-node-serialport node-red-contrib-buffer-parser
 # sudo setcap cap_net_raw+eip $(eval readlink -f `which node`)
 
 match='editorTheme: {'
@@ -102,6 +96,7 @@ if [ -d "resources" ]; then
     sudo chmod +x node-red-re*
     sudo chmod +x node-red-log
     sudo cp nodered.service /lib/systemd/system/
+    sudo cp nodered.service /tmp/
     sudo cp node-red-start /usr/bin/
     sudo cp node-red-stop /usr/bin/
     sudo cp node-red-restart /usr/bin/

@@ -605,7 +605,7 @@ case $yn in
             if [ $(cat /proc/meminfo | grep MemTotal | cut -d ":" -f 2 | cut -d "k" -f 1 | xargs) -gt 3894000 ]; then mem="2048"; fi
 
             sudo sed -i 's#=512#='$mem'#;' ${SYSTEMDFILE}.temp
-            sudo sed -i 's#^User=pi#User='$NODERED_USER'#;s#^Group=pi#Group='$NODERED_GROUP'#;s#^WorkingDirectory=/home/pi#WorkingDirectory='$NODERED_HOME'#;s#^EnvironmentFile=-/home/pi#EnvironmentFile=-'$NODERED_HOME'#;' ${SYSTEMDFILE}.temp
+            sudo sed -i 's#^User=.*#User='$NODERED_USER'#;s#^Group=.*#Group='$NODERED_GROUP'#;s#^WorkingDirectory=.*#WorkingDirectory='$NODERED_HOME'#;s#^EnvironmentFile=-.*#EnvironmentFile=-'$NODERED_HOME'/.node-red/EnvironmentFile#;' ${SYSTEMDFILE}.temp
 
             if test -f "$SYSTEMDFILE"; then
                 # there's already a systemd script

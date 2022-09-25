@@ -53,7 +53,7 @@ Note: if you use allow-low-ports it may affect the node modules paths - see http
 EOL
 }
 
-NODE_VERSION=""
+NODE_VERSION="--node18"
 LOW_PORTS="n"
 if [ $# -gt 0 ]; then
   # Parsing parameters

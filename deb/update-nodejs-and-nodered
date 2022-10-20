@@ -520,7 +520,7 @@ case $yn in
         # install any nodes, that were installed globally, as local instead
         echo "Now create basic package.json for the user and move any global nodes" | sudo tee -a /var/log/nodered-install.log >>/dev/null
         mkdir -p "$NODERED_HOME/.node-red/node_modules"
-        sudo chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.node-red/ 2>&1 >>/dev/null
+        sudo chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.node-red/node_modules 2>&1 >>/dev/null
         # Make it more secure by making settings owned by root and removing nopasswd file for default user.
         # sudo chown -Rf root:root $NODERED_HOME/.node-red/settings.js 2>&1 >>/dev/null
         # sudo rm -f /etc/sudoers.d/010_pi-nopasswd
@@ -718,17 +718,26 @@ case $yn in
             echo " to setup security."
             echo " "
             echo " ### ADDITIONAL RECOMMENDATIONS ###"
-            echo " 1. Remove the /etc/sudoers/010_pi-nopasswd file to require entering your password"
+            if [ -f /etc/sudoers.d/010_pi-nopasswd ]; then
+            echo "  - Remove the /etc/sudoers.d/010_pi-nopasswd file to require entering your password"
             echo "    when performing any sudo/root commands:"
             echo " "
-            echo "     sudo rm -f /etc/sudoers/010_pi-nopasswd"
+            echo "     sudo rm -f /etc/sudoers.d/010_pi-nopasswd"
             echo " "
-            echo " 2. After running Node-RED for the first time, change the ownership of its settings"
+            fi
+            if [ ! -f ~/.node-red/settings.js ]; then
+            echo "  - After running Node-RED for the first time, change the ownership of its settings"
             echo "    file to 'root' to prevent unauthorised changes:"
             echo ""
             echo "     sudo chown root:root ~/.node-red/settings.js"
             echo " "
-            echo " 3. Do not run Node-RED as root or an administraive account"
+            elif ! [[ $(stat --format '%G' ~/.node-red/settings.js) = "root" ]]; then
+            echo "  - Change the ownership of its settings file to 'root' to prevent unauthorised changes:"
+            echo ""
+            echo "     sudo chown root:root ~/.node-red/settings.js"
+            echo " "
+            fi
+            echo "  - Do not run Node-RED as root or an administraive account"
             echo " "
             echo " **********************************************************************************"
         fi

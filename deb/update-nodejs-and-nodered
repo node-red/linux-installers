@@ -521,6 +521,9 @@ case $yn in
         echo "Now create basic package.json for the user and move any global nodes" | sudo tee -a /var/log/nodered-install.log >>/dev/null
         mkdir -p "$NODERED_HOME/.node-red/node_modules"
         sudo chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.node-red/ 2>&1 >>/dev/null
+        # Make it more secure by making settings owned by root and removing nopasswd file for default user.
+        # sudo chown -Rf root:root $NODERED_HOME/.node-red/settings.js 2>&1 >>/dev/null
+        # sudo rm -f /etc/sudoers.d/010_pi-nopasswd
         pushd "$NODERED_HOME/.node-red" 2>&1 >>/dev/null
             npm config set update-notifier false 2>&1 >>/dev/null
             # npm config set color false 2>&1 >>/dev/null
@@ -573,20 +576,20 @@ case $yn in
             # add the shortcut and start/stop/log scripts to the menu
             echo "Now add the shortcut and start/stop/log scripts to the menu" | sudo tee -a /var/log/nodered-install.log >>/dev/null
             sudo mkdir -p /usr/bin
-            if curl -f https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-icon.svg >/dev/null 2>&1; then
-                sudo curl -sL -o /usr/share/icons/hicolor/scalable/apps/node-red-icon.svg https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-icon.svg 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-                sudo curl -sL -o /usr/share/applications/Node-RED.desktop https://raw.githubusercontent.com/node-red/linux-installers/master/resources/Node-RED.desktop 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-                sudo curl -sL -o /usr/bin/node-red-start https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-start 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-                sudo curl -sL -o /usr/bin/node-red-stop https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-stop 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-                sudo curl -sL -o /usr/bin/node-red-restart https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-restart 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-                sudo curl -sL -o /usr/bin/node-red-reload https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-reload 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-                sudo curl -sL -o /usr/bin/node-red-log https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-log 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-                sudo curl -sL -o /etc/logrotate.d/nodered https://raw.githubusercontent.com/node-red/linux-installers/master/resources/nodered.rotate 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+            if sudo curl -m 60 -f https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-icon.svg >/dev/null 2>&1; then
+                sudo curl -sL -m 60 -o /usr/bin/node-red-start https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-start 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                sudo curl -sL -m 60 -o /usr/bin/node-red-stop https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-stop 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                sudo curl -sL -m 60 -o /usr/bin/node-red-restart https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-restart 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                sudo curl -sL -m 60 -o /usr/bin/node-red-reload https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-reload 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                sudo curl -sL -m 60 -o /usr/bin/node-red-log https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-log 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                sudo curl -sL -m 60 -o /etc/logrotate.d/nodered https://raw.githubusercontent.com/node-red/linux-installers/master/resources/nodered.rotate 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 sudo chmod +x /usr/bin/node-red-start
                 sudo chmod +x /usr/bin/node-red-stop
                 sudo chmod +x /usr/bin/node-red-restart
                 sudo chmod +x /usr/bin/node-red-reload
                 sudo chmod +x /usr/bin/node-red-log
+                sudo curl -sL -m 60 -o /usr/share/icons/hicolor/scalable/apps/node-red-icon.svg https://raw.githubusercontent.com/node-red/linux-installers/master/resources/node-red-icon.svg 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
+                sudo curl -sL -m 60 -o /usr/share/applications/Node-RED.desktop https://raw.githubusercontent.com/node-red/linux-installers/master/resources/Node-RED.desktop 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
                 echo -ne "  Add shortcut commands               $TICK\r\n"
             else
                 echo -ne "  Add shortcut commands               $CROSS\r\n"
@@ -598,7 +601,7 @@ case $yn in
             # check if systemd script already exists
             SYSTEMDFILE="/lib/systemd/system/nodered.service"
 
-            if sudo curl -sL -o ${SYSTEMDFILE}.temp https://raw.githubusercontent.com/node-red/linux-installers/master/resources/nodered.service 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+            if sudo curl -sL -m 60 -o ${SYSTEMDFILE}.temp https://raw.githubusercontent.com/node-red/linux-installers/master/resources/nodered.service 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
             # set the memory, User Group and WorkingDirectory in nodered.service
             if [ $(cat /proc/meminfo | grep MemTotal | cut -d ":" -f 2 | cut -d "k" -f 1 | xargs) -lt 894000 ]; then mem="256"; else mem="512"; fi
             if [ $(cat /proc/meminfo | grep MemTotal | cut -d ":" -f 2 | cut -d "k" -f 1 | xargs) -gt 1894000 ]; then mem="1024"; fi
@@ -704,6 +707,30 @@ case $yn in
             echo "   diff -y --suppress-common-lines /usr/lib/node_modules/node-red/settings.js $file"
             echo "to compare them and see what the latest options are."
             echo " "
+        fi
+
+        if sudo grep -q BCM2 /proc/cpuinfo; then
+            echo " **********************************************************************************"
+            echo " ### WARNING ###"
+            echo " DO NOT EXPOSE NODE-RED TO THE OPEN INTERNET WITHOUT SECURING IT FIRST"
+            echo " "
+            echo " Follow the guide at https://nodered.org/docs/user-guide/runtime/securing-node-red"
+            echo " to setup security."
+            echo " "
+            echo " ### ADDITIONAL RECOMMENDATIONS ###"
+            echo " 1. Remove the /etc/sudoers/010_pi-nopasswd file to require entering your password"
+            echo "    when performing any sudo/root commands:"
+            echo " "
+            echo "     sudo rm -f /etc/sudoers/010_pi-nopasswd"
+            echo " "
+            echo " 2. After running Node-RED for the first time, change the ownership of its settings"
+            echo "    file to 'root' to prevent unauthorised changes:"
+            echo ""
+            echo "     sudo chown root:root ~/.node-red/settings.js"
+            echo " "
+            echo " 3. Do not run Node-RED as root or an administraive account"
+            echo " "
+            echo " **********************************************************************************"
         fi
     ;;
     * )

@@ -153,10 +153,13 @@ echo " Copyright 2015,2017 IBM Corp." | sudo tee -a control
 echo " Licensed under the Apache License, Version 2.0" | sudo tee -a control
 echo " http://www.apache.org/licenses/LICENSE-2.0" | sudo tee -a control
 
-echo "service nodered stop >/dev/null 2>&1; exit 0" | sudo tee preinst
-echo 'sync' | sudo tee postinst
+echo '#!/bin/sh -e' | sudo tee preinst
+echo 'service nodered stop >/dev/null 2>&1; exit 0' | sudo tee -a preinst
+
+echo '#!/bin/sh -e' | sudo tee postinst
 echo 'hash -r >/dev/null 2>&1' | sudo tee -a postinst
 echo 'sed -i "s#^User=.*#User=$SUDO_USER#;s#^Group=.*#Group=$SUDO_USER#;s#^WorkingDirectory=.*#WorkingDirectory=/home/$SUDO_USER#;s#^EnvironmentFile=.*#EnvironmentFile=-/home/$SUDO_USER/.node-red/environment#" /usr/lib/systemd/system/nodered.service' | sudo tee -a postinst
+echo 'sync' | sudo tee -a postinst
 echo 'exit 0' | sudo tee -a postinst
 echo "service nodered stop >/dev/null 2>&1; exit 0" | sudo tee prerm
 # echo "rm -rf /usr/lib/node_modules/node-red* /usr/bin/node-red* /usr/share/applications/Node-RED.desktop /usr/share/icons/hicolor/scalable/apps/node-red-icon.svg >/dev/null 2>&1; exit 0" | sudo tee postrm

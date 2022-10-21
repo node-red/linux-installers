@@ -727,7 +727,7 @@ case $yn in
             echo " "
         fi
         if [ ! -f ~/.node-red/settings.js ]; then
-            echo "  - You may want to customise the initial settings by running."
+            echo "  - You can customise the initial settings by running:"
             echo " "
             echo "      node-red admin init"
             echo " "

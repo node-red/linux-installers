@@ -20,11 +20,11 @@
 umask 0022
 tgta12=12.22.12   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 tgtl12=12.16.3   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta14=14.20.0   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
-tgtl14=14.20.0   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta16=16.17.0   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
-tgtl16=16.17.0   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta18=18.7.0    # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgta14=14.20.1   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgtl14=14.20.1   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
+tgta16=16.18.0   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgtl16=16.18.0   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
+tgta18=18.9.1    # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 tgtl18=18.4.0    # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 
 usage() {
@@ -40,6 +40,7 @@ Options:
   --restart         restart service if install succeeds
   --allow-low-ports add capability to bind to ports below 1024 (default is disallow)
   --update-nodes    run npm update on existing installed nodes (within scope of package.json)
+  --no-init         don't ask to initialise settings if they don't exist
   --nodered-user    specify the user to run as, useful for installing as sudo - e.g. --nodered-user=pi
   --nodered-version if not set, the latest version is used - e.g. --nodered-version="3.0.1"
   --node12          if set, forces install of major version of nodejs 12 LTS
@@ -113,6 +114,10 @@ if [ $# -gt 0 ]; then
         ;;
       --allow-low-ports)
         LOW_PORTS="y"
+        shift
+        ;;
+      --no-init)
+        INITSET="n"
         shift
         ;;
       --) # end argument parsing
@@ -697,9 +702,6 @@ case $yn in
         file=/home/$NODERED_USER/.node-red/settings.js
         if [ ! -f $file ]; then
             echo " "
-            echo -e "You may want to run   \033[0;36mnode-red admin init\033[0m"
-            echo "to configure your initial options and settings."
-            echo " "
         elif ! diff -q /usr/lib/node_modules/node-red/settings.js $file &>/dev/null 2>&1 ; then
             echo " "
             echo "Just FYI : Your settings.js file is different from the latest defaults."
@@ -709,38 +711,55 @@ case $yn in
             echo " "
         fi
 
-        if sudo grep -q BCM2 /proc/cpuinfo; then
-            echo " **********************************************************************************"
-            echo " ### WARNING ###"
-            echo " DO NOT EXPOSE NODE-RED TO THE OPEN INTERNET WITHOUT SECURING IT FIRST"
-            echo " "
-            echo " Follow the guide at https://nodered.org/docs/user-guide/runtime/securing-node-red"
-            echo " to setup security."
-            echo " "
-            echo " ### ADDITIONAL RECOMMENDATIONS ###"
-            if [ -f /etc/sudoers.d/010_pi-nopasswd ]; then
+        echo "**********************************************************************************"
+        echo " ### WARNING ###"
+        echo " DO NOT EXPOSE NODE-RED TO THE OPEN INTERNET WITHOUT SECURING IT FIRST"
+        echo " "
+        echo " Follow the guide at https://nodered.org/docs/user-guide/runtime/securing-node-red"
+        echo " to setup security."
+        echo " "
+        echo " ### ADDITIONAL RECOMMENDATIONS ###"
+        if [ -f /etc/sudoers.d/010_pi-nopasswd ]; then
             echo "  - Remove the /etc/sudoers.d/010_pi-nopasswd file to require entering your password"
             echo "    when performing any sudo/root commands:"
             echo " "
-            echo "     sudo rm -f /etc/sudoers.d/010_pi-nopasswd"
+            echo "      sudo rm -f /etc/sudoers.d/010_pi-nopasswd"
             echo " "
-            fi
-            if [ ! -f ~/.node-red/settings.js ]; then
-            echo "  - After running Node-RED for the first time, change the ownership of its settings"
+        fi
+        if [ ! -f ~/.node-red/settings.js ]; then
+            echo "  - You may want to customise the initial settings by running."
+            echo " "
+            echo "      node-red admin init"
+            echo " "
+            echo "  - After running Node-RED for the first time, change the ownership of the settings"
             echo "    file to 'root' to prevent unauthorised changes:"
-            echo ""
-            echo "     sudo chown root:root ~/.node-red/settings.js"
             echo " "
-            elif ! [[ $(stat --format '%G' ~/.node-red/settings.js) = "root" ]]; then
+            echo "      sudo chown root:root ~/.node-red/settings.js"
+            echo " "
+        elif ! [[ $(stat --format '%G' ~/.node-red/settings.js) = "root" ]]; then
             echo "  - Change the ownership of its settings file to 'root' to prevent unauthorised changes:"
             echo ""
-            echo "     sudo chown root:root ~/.node-red/settings.js"
+            echo "      sudo chown root:root ~/.node-red/settings.js"
             echo " "
-            fi
+        fi
+        if [ "$EUID" == "0" ]; then
             echo "  - Do not run Node-RED as root or an administraive account"
             echo " "
-            echo " **********************************************************************************"
         fi
+        echo "**********************************************************************************"
+        echo " "
+        initset="${INITSET}"
+        [ ! "${INITSET}" ] && read -t 60 -p "  Would you like to customise the settings now (y/N) ? " initset
+        case $initset in
+            [Yy]* )
+            node-red admin init
+            sudo chown root:root ~/.node-red/settings.js
+            ;;
+            * )
+            echo " "
+            exit 1
+            ;;
+        esac
     ;;
     * )
         echo " "

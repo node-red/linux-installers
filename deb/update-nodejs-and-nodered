@@ -748,18 +748,20 @@ case $yn in
         fi
         echo "**********************************************************************************"
         echo " "
-        initset="${INITSET}"
-        [ ! "${INITSET}" ] && read -t 60 -p "  Would you like to customise the settings now (y/N) ? " initset
-        case $initset in
-            [Yy]* )
-            node-red admin init
-            sudo chown root:root ~/.node-red/settings.js
-            ;;
-            * )
-            echo " "
-            exit 1
-            ;;
-        esac
+        if [ ! -f ~/.node-red/settings.js ]; then
+            initset="${INITSET}"
+            [ ! "${INITSET}" ] && read -t 60 -p "  Would you like to customise the settings now (y/N) ? " initset
+            case $initset in
+                [Yy]* )
+                node-red admin init
+                sudo chown root:root ~/.node-red/settings.js
+                ;;
+                * )
+                echo " "
+                exit 1
+                ;;
+            esac
+        fi
     ;;
     * )
         echo " "

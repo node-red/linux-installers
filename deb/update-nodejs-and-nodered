@@ -407,13 +407,16 @@ case $yn in
                 curl -sSL -o /tmp/node.tgz https://unofficial-builds.nodejs.org/download/release/v$tgtl/node-v$tgtl-linux-x86.tar.gz 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 # unpack it into the correct places
                 hd=$(head -c 9 /tmp/node.tgz)
-                if [ "$hd" == "<!DOCTYPE" ]; then
+                if [ "$hd" == "<!DOCT" ] || [ "$hd" == "<html>" ]; then
                     CHAR="$CROSS File $f not downloaded";
                 else
+                    if [[ -d /tmp/nodejs ]]; then
+                        $SUDO rm -rf /tmp/nodejs
+                    fi
                     mkdir -p /tmp/nodejs
                     $SUDO tar -zxof /tmp/node.tgz --strip-components=1 -C /tmp/nodejs
-                    $SUDO chown -R root:root /tmp/nodejs 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-                    if $SUDO cp -PR /tmp/nodejs/* /usr 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+                    $SUDO chown -R 0:0 /tmp/nodejs 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                    if $SUDO cp -PR /tmp/nodejs/* /usr/ 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
                     $SUDO rm -rf /tmp/nodejs 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                     # if $SUDO tar -zxof /tmp/node.tgz --strip-components=1 -C /usr 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
                 fi
@@ -428,23 +431,17 @@ case $yn in
                 # curl -sL -o node.tgz https://nodejs.org/download/release/latest-dubnium/$f 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 curl -sSL -o /tmp/node.tgz https://unofficial-builds.nodejs.org/download/release/v$tgta/node-v$tgta-linux-armv6l.tar.gz 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 # unpack it into the correct places
-                hd=$(head -c 9 /tmp/node.tgz)
-                if [ "$hd" == "<!DOCTYPE" ]; then
+                hd=$(head -c 6 /tmp/node.tgz)
+                if [ "$hd" == "<!DOCT" ] || [ "$hd" == "<html>" ]; then
                     CHAR="$CROSS File $f not downloaded";
                 else
+                    if [[ -d /tmp/nodejs ]]; then
+                        $SUDO rm -rf /tmp/nodejs
+                    fi
                     mkdir -p /tmp/nodejs
-                    # if [[ -e /usr/bin/node ]]; then
-                    #     if [[ -O "/usr/bin/" ]]; then
-                    #         echo "Fixup v6 /usr owner" | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-                    #         $SUDO chown -f root:root /usr/bin /usr/bin/node /usr/bin/npx /usr/bin/npm /usr/lib /usr/include
-                    #         $SUDO chown -fR root:root /usr/lib/node_modules /usr/include/node /usr/share
-                    #     else
-                    #         echo "v6 /usr owner OK" | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-                    #     fi
-                    # fi
                     $SUDO tar -zxof /tmp/node.tgz --strip-components=1 -C /tmp/nodejs
-                    $SUDO chown -R root:root /tmp/nodejs 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-                    if $SUDO cp -PR /tmp/nodejs/* /usr 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+                    $SUDO chown -R 0:0 /tmp/nodejs 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                    if $SUDO cp -PR /tmp/nodejs/* /usr/ 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
                     $SUDO rm -rf /tmp/nodejs 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 fi
                 # remove the tgz file to save space
@@ -529,7 +526,7 @@ case $yn in
         mkdir -p "$NODERED_HOME/.node-red/node_modules"
         $SUDO chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.node-red/node_modules 2>&1 >>/dev/null
         # Make it more secure by making settings owned by root and removing nopasswd file for default user.
-        # $SUDO chown -Rf root:root $NODERED_HOME/.node-red/settings.js 2>&1 >>/dev/null
+        # $SUDO chown -Rf 0:0 $NODERED_HOME/.node-red/settings.js 2>&1 >>/dev/null
         # $SUDO rm -f /etc/sudoers.d/010_pi-nopasswd
         pushd "$NODERED_HOME/.node-red" 2>&1 >>/dev/null
             npm config set update-notifier false 2>&1 >>/dev/null

@@ -758,6 +758,10 @@ case $yn in
                 node-red admin init
                 $SUDO chown 0:0 ~/.node-red/settings.js
                 ;;
+                "n")
+                echo "With the option no-init specified, the settings is not initialized."
+                exit 0
+                ;;
                 * )
                 echo " "
                 exit 1

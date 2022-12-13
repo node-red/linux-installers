@@ -55,6 +55,7 @@ EOL
 }
 
 SUDO=sudo
+SUDOE=sudo -E
 NODE_VERSION=""
 LOW_PORTS="n"
 if [ $# -gt 0 ]; then
@@ -187,6 +188,7 @@ if [ "$EUID" == "0" ]; then
     ;;
   esac
   SUDO=''
+  SUDOE=''
   id -u nobody &>/dev/null || adduser --no-create-home --shell /dev/null --disabled-password --disabled-login --gecos '' nobody &>/dev/null
 fi
 
@@ -467,7 +469,7 @@ case $yn in
                 echo -ne "  Install Node.js $NODE_VERSION LTS              \r"
                 # use the official script to install for other debian platforms
                 $SUDO apt install -y curl 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-                curl -sSL https://deb.nodesource.com/setup_$NODE_VERSION.x | $SUDO -E bash - 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                curl -sSL https://deb.nodesource.com/setup_$NODE_VERSION.x | $SUDOE bash - 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 if $SUDO apt install -y nodejs 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
                 echo -ne "  Install Node.js $NODE_VERSION LTS              $CHAR"
             fi
@@ -759,7 +761,7 @@ case $yn in
                 $SUDO chown 0:0 ~/.node-red/settings.js
                 ;;
                 "n")
-                echo "With the option no-init specified, the settings is not initialized."
+                echo "Settings not initialized."
                 exit 0
                 ;;
                 * )

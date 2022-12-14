@@ -55,7 +55,7 @@ EOL
 }
 
 SUDO=sudo
-SUDOE=sudo -E
+SUDOE="sudo -E"
 NODE_VERSION=""
 LOW_PORTS="n"
 if [ $# -gt 0 ]; then

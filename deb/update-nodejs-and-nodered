@@ -20,11 +20,11 @@
 umask 0022
 tgta12=12.22.12   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 tgtl12=12.16.3   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta14=14.21.2   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
-tgtl14=14.21.2   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta16=16.19.0   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
-tgtl16=16.19.0   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta18=18.12.1    # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgta14=14.21.3   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgtl14=14.21.3   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
+tgta16=16.20.0   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgtl16=16.20.0   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
+tgta18=18.15.0    # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 tgtl18=18.4.0    # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 
 usage() {
@@ -661,10 +661,10 @@ case $yn in
         echo "Now add launcher to top bar, add cpu temp example, make sure ping works" | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
         if $SUDO grep -q BCM2 /proc/cpuinfo; then
             # $SUDO setcap cap_net_raw+eip $(eval readlink -f `which node`) 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-            $SUDO setcap cap_net_raw=ep /bin/ping 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
             $SUDO adduser $NODERED_USER gpio 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
             $SUDO apt install -y python3-rpi.gpio 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
         fi
+        $SUDO setcap cap_net_raw=ep /bin/ping 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
 
         echo "Allow binding to low ports : $LOW_PORTS" | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
         if [[ "$LOW_PORTS" == "y" ]] ; then

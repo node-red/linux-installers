@@ -384,6 +384,9 @@ case $yn in
             elif [[ "$NODE_VERSION" == "14" ]]; then
                 tgtl=$tgtl14
                 tgta=$tgta14
+            elif [[ "$NODE_VERSION" == "16" ]]; then
+                tgtl=$tgtl16
+                tgta=$tgta16
             elif [[ "$NODE_VERSION" == "18" ]]; then
                 tgtl=$tgtl18
                 tgta=$tgta18

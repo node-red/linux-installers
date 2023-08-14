@@ -264,13 +264,13 @@ case "${yn}" in
         echo "Now install nodejs" | sudo tee -a /var/log/nodered-install.log >>/dev/null
         if [ "${MYOS}" = "fedora" ] || [ "${MYOS}" = "almalinux" ] || [ "${MYOS}" = "rocky" ] || [ "${MYOS}" = "miraclelinux" ]; then
             sudo dnf module reset -y nodejs 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
-            if sudo dnf module install -y nodejs:14/default 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+            if sudo dnf module install -y nodejs:18/default 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
         else
             if [ "$EUID" == "0" ]
             then
-                if curl -fsSL https://rpm.nodesource.com/setup_14.x | bash - 2>&1 | tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+                if curl -fsSL https://rpm.nodesource.com/setup_18.x | bash - 2>&1 | tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
             else
-                if curl -fsSL https://rpm.nodesource.com/setup_14.x | sudo -E bash - 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+                if curl -fsSL https://rpm.nodesource.com/setup_18.x | sudo -E bash - 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
             fi
             if sudo yum install -y nodejs 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
         fi
@@ -382,7 +382,7 @@ EOF
           echo "#NODE_RED_OPTIONS=-v" | sudo tee -a /etc/node-red/environment >>/dev/null
           echo "" | sudo tee -a /etc/node-red/environment >>/dev/null
 
-          echo "Created /etc/node-red/environment for systed service." | sudo tee -a /var/log/nodered-install.log >>/dev/null
+          echo "Created /etc/node-red/environment for systemd service." | sudo tee -a /var/log/nodered-install.log >>/dev/null
        fi
         sudo systemctl daemon-reload 2>&1 | sudo tee -a /var/log/nodered-install.log >>/dev/null
         echo -ne "  Update systemd script               $CHAR\r\n"

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2016,2022 JS Foundation and other contributors, https://js.foundation/
+# Copyright 2016,2023 JS Foundation and other contributors, https://js.foundation/
 # Copyright 2015,2016 IBM Corp.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,14 +18,16 @@
 # Node-RED Installer for DEB based systems
 
 umask 0022
-tgta12=12.22.12   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgta12=12.22.12  # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 tgtl12=12.16.3   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 tgta14=14.21.3   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 tgtl14=14.21.3   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta16=16.20.1   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
-tgtl16=16.20.1   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta18=18.16.1    # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgta16=16.20.2   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgtl16=16.20.2   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
+tgta18=18.17.1   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 tgtl18=18.4.0    # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
+tgta20=20.5.1    # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+# tgtl20=None      # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 
 usage() {
   cat << EOL
@@ -43,11 +45,12 @@ Options:
   --no-init         don't ask to initialise settings if they don't exist
   --nodered-user    specify the user to run as, useful for installing as sudo - e.g. --nodered-user=pi
   --nodered-version if not set, the latest version is used - e.g. --nodered-version="3.0.1"
-  --node12          if set, forces install of major version of nodejs 12 LTS
-  --node14          if set, forces install of major version of nodejs 14 LTS
+  --node12          if set, forces install of major version of nodejs 12 LTS (unsupported)
+  --node14          if set, forces install of major version of nodejs 14 LTS (unsupported)
   --node16          if set, forces install of major version of nodejs 16 LTS
   --node18          if set, forces install of major version of nodejs 18 LTS
-                    if none set, install nodejs 16 LTS if nodejs version is less than 14,
+  --node20          if set, forces install of major version of nodejs 20 LTS
+                    if none set, install nodejs 18 LTS if nodejs version is less than 14,
                     otherwise leave current install
 
 Note: if you use allow-low-ports it may affect the node modules paths - see https://stackoverflow.com/a/65560687
@@ -96,6 +99,10 @@ if [ $# -gt 0 ]; then
         ;;
       --node18)
         NODE_VERSION="18"
+        shift
+        ;;
+      --node20)
+        NODE_VERSION="20"
         shift
         ;;
       --restart)
@@ -207,7 +214,7 @@ if curl -I https://registry.npmjs.org/@node-red/util  >/dev/null 2>&1; then
 echo -e '\033]2;'$NODERED_USER@`hostname`:  Node-RED update'\007'
 echo " "
 echo "This script checks the version of node.js installed is 14 or greater. It will try to"
-echo "install node 16 if none is found. It can optionally install node 12, 14, 16 or 18 LTS for you."
+echo "install node 18 if none is found. It can optionally install node 16, 18 or 20 LTS for you."
 echo " "
 echo "If necessary it will then remove the old core of Node-RED, before then installing the latest"
 echo "version. You can also optionally specify the version required."
@@ -300,7 +307,7 @@ case $yn in
                 # echo "  "
                 # echo "  You can use the old v1 branch by specifying --nodered-version=1.*"
                 echo "  "
-                echo "  You can force an install of node 14, 16  or 18 by using the --node14, --node16 or --node18 parameter."
+                echo "  You can force an install of node 14, 16, 18 or 20 by using the --node14, --node16, --node18 or --node20 parameter."
                 echo "  However doing so may break some nodes that may need re-installing manually."
                 echo "  Generally it is recommended to update all nodes to their latest versions before upgrading."
                 echo "  "
@@ -368,7 +375,7 @@ case $yn in
             echo -ne "  Leave existing Node.js              :"
         elif [[ "$NODE_VERSION" == "" && "$nv" -ne 0 ]]; then
             CHAR="-"
-            echo -ne "  Node option not specified           :   --node14, --node16, or --node18\n"
+            echo -ne "  Node option not specified           :   --node16, --node18 or --node20\n"
             echo -ne "  Leave existing Node.js              :"
         else
             if [[ "$NODE_VERSION" == "12" ]]; then
@@ -380,10 +387,13 @@ case $yn in
             elif [[ "$NODE_VERSION" == "18" ]]; then
                 tgtl=$tgtl18
                 tgta=$tgta18
+            elif [[ "$NODE_VERSION" == "20" ]]; then
+                tgtl="None"
+                tgta=$tgta20
             else
-                tgtl=$tgtl16
-                tgta=$tgta16
-                NODE_VERSION="16"
+                tgtl=$tgtl18
+                tgta=$tgta18
+                NODE_VERSION="18"
             fi
             # maybe remove Node.js - or upgrade if nodesource.list exists
             if [[ -d $NODERED_HOME/.nvm ]]; then
@@ -406,24 +416,28 @@ case $yn in
                 echo -ne "  Update Node.js $NODE_VERSION                   $CHAR"
             elif [[ "$(uname -m)" =~ "i686" ]] || [[ "$(uname -m)" =~ "x86_64" && "$(getconf LONG_BIT)" =~ "32" ]]; then
                 echo "Using 32bit nodejs" | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-                curl -sSL -o /tmp/node.tgz https://unofficial-builds.nodejs.org/download/release/v$tgtl/node-v$tgtl-linux-x86.tar.gz 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-                # unpack it into the correct places
-                hd=$(head -c 9 /tmp/node.tgz)
-                if [ "$hd" == "<!DOCT" ] || [ "$hd" == "<html>" ]; then
-                    CHAR="$CROSS File $f not downloaded";
-                else
-                    if [[ -d /tmp/nodejs ]]; then
-                        $SUDO rm -rf /tmp/nodejs
+                if [[ "$tgtl" != "None" ]]; then
+                    curl -sSL -o /tmp/node.tgz https://unofficial-builds.nodejs.org/download/release/v$tgtl/node-v$tgtl-linux-x86.tar.gz 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                    # unpack it into the correct places
+                    hd=$(head -c 9 /tmp/node.tgz)
+                    if [ "$hd" == "<!DOCT" ] || [ "$hd" == "<html>" ]; then
+                        CHAR="$CROSS File $f not downloaded";
+                    else
+                        if [[ -d /tmp/nodejs ]]; then
+                            $SUDO rm -rf /tmp/nodejs
+                        fi
+                        mkdir -p /tmp/nodejs
+                        $SUDO tar -zxof /tmp/node.tgz --strip-components=1 -C /tmp/nodejs
+                        $SUDO chown -R 0:0 /tmp/nodejs 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                        if $SUDO cp -PR /tmp/nodejs/* /usr/ 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+                        $SUDO rm -rf /tmp/nodejs 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                        # if $SUDO tar -zxof /tmp/node.tgz --strip-components=1 -C /usr 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
                     fi
-                    mkdir -p /tmp/nodejs
-                    $SUDO tar -zxof /tmp/node.tgz --strip-components=1 -C /tmp/nodejs
-                    $SUDO chown -R 0:0 /tmp/nodejs 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-                    if $SUDO cp -PR /tmp/nodejs/* /usr/ 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
-                    $SUDO rm -rf /tmp/nodejs 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-                    # if $SUDO tar -zxof /tmp/node.tgz --strip-components=1 -C /usr 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+                    rm /tmp/node.tgz 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                    echo -ne "  Install Node.js for i686            $CHAR"
+                else
+                    echo -ne "  Nodejs 20 for i686 does not exist   $CROSS"
                 fi
-                rm /tmp/node.tgz 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-                echo -ne "  Install Node.js for i686            $CHAR"
             elif uname -m | grep -q armv6l ; then
                 $SUDO apt remove -y nodejs nodejs-legacy npm 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 $SUDO rm -rf /etc/apt/sources.d/nodesource.list /usr/lib/node_modules/npm*

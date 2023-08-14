@@ -154,7 +154,7 @@ echo " Licensed under the Apache License, Version 2.0" | sudo tee -a control
 echo " http://www.apache.org/licenses/LICENSE-2.0" | sudo tee -a control
 
 echo '#!/bin/sh -e' | sudo tee preinst
-echo 'service nodered stop >/dev/null 2>&1; exit 0' | sudo tee -a preinst
+echo 'service nodered stop || true >/dev/null 2>&1; exit 0' | sudo tee -a preinst
 
 echo '#!/bin/sh -e' | sudo tee postinst
 echo 'hash -r >/dev/null 2>&1' | sudo tee -a postinst

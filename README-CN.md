@@ -3,16 +3,16 @@
 If you are Chinese user, we suggest you to change your node-js offical mirror to Chinese mirror,
 如果您在中国请使用国内镜像源获取更好的下载体验，
 
-run `curl -sL https://deb.nodesource.com/setup_12.x | sudo bash -` ,
-示例：`curl -sL https://deb.nodesource.com/setup_12.x | sudo bash -` 从官方安装apt源，
+run `curl -sL https://deb.nodesource.com/setup_18.x | sudo bash -` ,
+示例：`curl -sL https://deb.nodesource.com/setup_18.x | sudo bash -` 从官方安装apt源，
 
 then please edit apt source list`/etc/apt/sources.list.d/nodesource.list`  like this:
 编辑镜像源`/etc/apt/sources.list.d/nodesource.list` 修改如下：
 ```
-#deb https://deb.nodesource.com/node_12.x buster main
-#deb-src https://deb.nodesource.com/node_12.x buster main
-deb https://mirrors.tuna.tsinghua.edu.cn/nodesource/deb_12.x buster main
-deb-src https://mirrors.tuna.tsinghua.edu.cn/nodesource/deb_12.x buster main
+#deb https://deb.nodesource.com/node_12.x bullseye main
+#deb-src https://deb.nodesource.com/node_12.x bullseye main
+deb https://mirrors.tuna.tsinghua.edu.cn/nodesource/deb_12.x bullseye main
+deb-src https://mirrors.tuna.tsinghua.edu.cn/nodesource/deb_12.x bullseye main
 ```
 if you edit it. Please run`sudo apt-get update`.
 更改镜像源后应该刷新缓存，请运行`sudo apt-get update``
@@ -27,7 +27,7 @@ Then run the install script as per the main README.md.
 If you are Chinese user, we suggest you to change your node-js offical mirror to Chinese mirror,
 如果您在中国请使用国内镜像源获取更好的下载体验，
 
-visit `https://mirrors.tuna.tsinghua.edu.cn/nodesource/` and see which version do you need,  you can add its yum source list like this `rpm -ivh https://mirrors.tuna.tsinghua.edu.cn/nodesource/rpm_10.x/el/7/x86_64/nodesource-release-el7-1.noarch.rpm`
+visit `https://mirrors.tuna.tsinghua.edu.cn/nodesource/` and see which version do you need,  you can add its yum source list like this `rpm -ivh https://mirrors.tuna.tsinghua.edu.cn/nodesource/rpm_18.x/el/7/x86_64/nodesource-release-el7-1.noarch.rpm`
 请找到适合您的rpm源安装包
 
 then edit yum source list `/etc/yum.repos.d/nodesource-el7.repo` like this:
@@ -35,7 +35,7 @@ then edit yum source list `/etc/yum.repos.d/nodesource-el7.repo` like this:
 ```
 [nodesource]
 name=Node.js Packages for Enterprise Linux 7 - $basearch
-baseurl=https://mirrors.tuna.tsinghua.edu.cn/nodesource/rpm_10.x/el/7/$basearch
+baseurl=https://mirrors.tuna.tsinghua.edu.cn/nodesource/rpm_18.x/el/7/$basearch
 failovermethod=priority
 enabled=1
 gpgcheck=1
@@ -43,7 +43,7 @@ gpgkey=file:///etc/pki/rpm-gpg/NODESOURCE-GPG-SIGNING-KEY-EL
 
 [nodesource-source]
 name=Node.js for Enterprise Linux 7 - $basearch - Source
-baseurl=https://mirrors.tuna.tsinghua.edu.cn/nodesource/rpm_10.x/el/7/SRPMS
+baseurl=https://mirrors.tuna.tsinghua.edu.cn/nodesource/rpm_18.x/el/7/SRPMS
 failovermethod=priority
 enabled=0
 gpgkey=file:///etc/pki/rpm-gpg/NODESOURCE-GPG-SIGNING-KEY-EL

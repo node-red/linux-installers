@@ -49,7 +49,7 @@ Or by use of the environment variables e.g. to set service user:
 NODERED_USER=nodered bash <(curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/rpm/update-nodejs-and-nodered)
 ```
 
-Environment variables, please note that the program commanf line options takes presedence:
+Environment variables, please note that the program command line options takes precedence:
 ```bash
 NODERED_USER=nodered
 OPEN_FIREWALL=y

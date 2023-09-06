@@ -26,7 +26,7 @@ tgta16=16.20.2   # need armv6l latest from https://unofficial-builds.nodejs.org/
 tgtl16=16.20.2   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 tgta18=18.17.1   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 tgtl18=18.4.0    # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta20=20.5.1    # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgta20=20.6.0    # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 # tgtl20=None      # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 
 usage() {
@@ -307,7 +307,7 @@ case $yn in
                 # echo "  "
                 # echo "  You can use the old v1 branch by specifying --nodered-version=1.*"
                 echo "  "
-                echo "  You can force an install of node 14, 16, 18 or 20 by using the --node14, --node16, --node18 or --node20 parameter."
+                echo "  You can force an install of node 16, 18 or 20 by adding --node16, --node18 or --node20 to the end of the command line above."
                 echo "  However doing so may break some nodes that may need re-installing manually."
                 echo "  Generally it is recommended to update all nodes to their latest versions before upgrading."
                 echo "  "

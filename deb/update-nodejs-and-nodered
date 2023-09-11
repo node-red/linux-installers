@@ -26,7 +26,7 @@ tgta16=16.20.2   # need armv6l latest from https://unofficial-builds.nodejs.org/
 tgtl16=16.20.2   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 tgta18=18.17.1   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 tgtl18=18.4.0    # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta20=20.6.0    # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgta20=20.6.1    # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 # tgtl20=None      # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 
 usage() {
@@ -45,12 +45,10 @@ Options:
   --no-init         don't ask to initialise settings if they don't exist
   --nodered-user    specify the user to run as, useful for installing as sudo - e.g. --nodered-user=pi
   --nodered-version if not set, the latest version is used - e.g. --nodered-version="3.0.1"
-  --node12          if set, forces install of major version of nodejs 12 LTS (unsupported)
-  --node14          if set, forces install of major version of nodejs 14 LTS (unsupported)
   --node16          if set, forces install of major version of nodejs 16 LTS
   --node18          if set, forces install of major version of nodejs 18 LTS
   --node20          if set, forces install of major version of nodejs 20 LTS
-                    if none set, install nodejs 18 LTS if nodejs version is less than 14,
+                    if none set, install nodejs 18 LTS if nodejs version is less than 16,
                     otherwise leave current install
 
 Note: if you use allow-low-ports it may affect the node modules paths - see https://stackoverflow.com/a/65560687
@@ -213,7 +211,7 @@ if [[ "$(uname)" != "Darwin" ]]; then
 if curl -I https://registry.npmjs.org/@node-red/util  >/dev/null 2>&1; then
 echo -e '\033]2;'$NODERED_USER@`hostname`:  Node-RED update'\007'
 echo " "
-echo "This script checks the version of node.js installed is 14 or greater. It will try to"
+echo "This script checks the version of node.js installed is 16 or greater. It will try to"
 echo "install node 18 if none is found. It can optionally install node 16, 18 or 20 LTS for you."
 echo " "
 echo "If necessary it will then remove the old core of Node-RED, before then installing the latest"
@@ -299,7 +297,7 @@ case $yn in
             NODE_VERSION="12"
         fi
 
-        if [[ "$nv" -lt 14 && "$nv" -ne 0  && "$nrv" != 1 ]]; then
+        if [[ "$nv" -lt 16 && "$nv" -ne 0  && "$nrv" != 1 ]]; then
             if [[ "$NODE_VERSION" == "" ]]; then
                 echo "Nodejs $nv too old and new version not specified - exiting" | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 echo "Node-RED v3.x no longer supports Nodejs $nv "
@@ -485,8 +483,12 @@ case $yn in
                 echo "Grab the LTS bundle" | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 echo -ne "  Install Node.js $NODE_VERSION LTS              \r"
                 # use the official script to install for other debian platforms
-                $SUDO apt install -y curl 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-                curl -sSL https://deb.nodesource.com/setup_$NODE_VERSION.x | $SUDOE bash - 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                $SUDO apt install -y ca-certificates curl gnupg 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                $SUDO mkdir -p /etc/apt/keyrings 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | $SUDOE gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                # curl -sSL https://deb.nodesource.com/setup_$NODE_VERSION.x | $SUDOE bash - 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_VERSION.x nodistro main" | $SUDOE tee -a /etc/apt/sources.list.d/nodesource.list >>/dev/null
+                $SUDO apt-get update 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 if $SUDO apt install -y nodejs 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
                 echo -ne "  Install Node.js $NODE_VERSION LTS              $CHAR"
             fi

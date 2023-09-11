@@ -479,13 +479,16 @@ case $yn in
                     $SUDO rm -rf /usr/local/lib/node_modules/node-red* /usr/lib/node_modules/node-red* 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 fi
                 $SUDO apt -y autoremove 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                $SUDO rm -rf /etc/apt/sources.list.d/nodesource.list 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                $SUDO rm -rf /etc/apt/keyrings/nodesource.gpg 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 echo -ne "  Remove old version of Node.js       \033[1;32m\u2714\033[0m   $nv2\r\n"
                 echo "Grab the LTS bundle" | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 echo -ne "  Install Node.js $NODE_VERSION LTS              \r"
                 # use the official script to install for other debian platforms
+
                 $SUDO apt install -y ca-certificates curl gnupg 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 $SUDO mkdir -p /etc/apt/keyrings 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-                curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | $SUDOE gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | $SUDOE gpg --batch --yes --dearmor -o /etc/apt/keyrings/nodesource.gpg 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 # curl -sSL https://deb.nodesource.com/setup_$NODE_VERSION.x | $SUDOE bash - 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_VERSION.x nodistro main" | $SUDOE tee -a /etc/apt/sources.list.d/nodesource.list >>/dev/null
                 $SUDO apt-get update 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null

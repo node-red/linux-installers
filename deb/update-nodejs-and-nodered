@@ -260,7 +260,8 @@ case $yn in
         echo -e "\nRunning Node-RED $EXTRAW for user $NODERED_USER at $NODERED_HOME on $MYOS\n"
 
         nv=0
-        nv2=""
+        # nv2=""
+        nv2=`dpkg -s nodejs | grep Version | cut -d ' ' -f 2`
         nrv=`echo $NODERED_VERSION | cut -d "." -f1`
 
         if [[ "$APTOK" == "false" ]]; then
@@ -279,10 +280,10 @@ case $yn in
         if [[ "$APTOK" == "true" ]]; then
             ndeb=$(apt-cache policy nodejs | grep Installed | awk '{print $2}')
         fi
-        if HAS_NODE; then
+        if HAS_NODE && HAS_NPM; then
             nv=`node -v | cut -d "." -f1 | cut -d "v" -f2`
             nvs=`node -v | cut -d "." -f2`
-            nv2=`node -v`
+            # nv2=`node -v`
             # nv2=`apt list nodejs 2>/dev/null | grep dfsg | cut -d ' ' -f 2 | cut -d '-' -f 1`
             echo "Already have nodejs $nv2" | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
         fi
@@ -493,7 +494,9 @@ case $yn in
                 echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_VERSION.x nodistro main" | $SUDOE tee -a /etc/apt/sources.list.d/nodesource.list >>/dev/null
                 $SUDO apt-get update 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 if $SUDO apt install -y nodejs 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
-                echo -ne "  Install Node.js $NODE_VERSION LTS              $CHAR"
+                nov2=$(dpkg -s nodejs | grep Version | cut -d ' ' -f 2)
+                echo -ne "  Install Node $nov2   $CHAR"
+                # echo -ne "  Install Node.js $NODE_VERSION LTS              $CHAR"
             fi
         fi
 

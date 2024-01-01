@@ -261,7 +261,7 @@ case $yn in
 
         nv=0
         # nv2=""
-        nv2=`dpkg -s nodejs | grep Version | cut -d ' ' -f 2`
+        nv2=`dpkg -s nodejs 2>/dev/null | grep Version | cut -d ' ' -f 2`
         nrv=`echo $NODERED_VERSION | cut -d "." -f1`
 
         if [[ "$APTOK" == "false" ]]; then
@@ -485,8 +485,13 @@ case $yn in
                 echo -ne "  Remove old version of Node.js       \033[1;32m\u2714\033[0m   $nv2\r\n"
                 echo "Grab the LTS bundle" | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 echo -ne "  Install Node.js $NODE_VERSION LTS              \r"
-                # use the official script to install for other debian platforms
 
+                # block debian nodejs install
+                echo "Package: nodejs" | $SUDO tee /etc/apt/preferences.d/nodejs.pref >>/dev/null
+                echo "Pin: release a=stable-security" | $SUDO tee -a /etc/apt/preferences.d/nodejs.pref >>/dev/null
+                echo "Pin-Priority: -1" | $SUDO tee -a /etc/apt/preferences.d/nodejs.pref >>/dev/null
+
+                # use the official script to install for other debian platforms
                 $SUDO apt install -y ca-certificates curl gnupg 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 $SUDO mkdir -p /etc/apt/keyrings 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | $SUDOE gpg --batch --yes --dearmor -o /etc/apt/keyrings/nodesource.gpg 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null

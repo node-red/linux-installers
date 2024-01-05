@@ -306,7 +306,7 @@ case $yn in
                 # echo "  "
                 # echo "  You can use the old v1 branch by specifying --nodered-version=1.*"
                 echo "  "
-                echo "  You can force an install of node 16, 18 or 20 by adding --node16, --node18 or --node20 to the end of the command line above."
+                echo "  You can force an install of node 16, 18 or 20 by adding --node18 or --node20 to the end of the command line above."
                 echo "  However doing so may break some nodes that may need re-installing manually."
                 echo "  Generally it is recommended to update all nodes to their latest versions before upgrading."
                 echo "  "
@@ -319,7 +319,7 @@ case $yn in
                 fi
                 echo "  Please backup your installation and flows before upgrading."
                 echo "  "
-                if ! $SUDO grep -q BCM2 /proc/cpuinfo; then
+                if ! $SUDO grep -q Raspberry /proc/cpuinfo; then
                     echo "  Note: not all embedded hardware can be updated via this method - please check before proceeding."
                     echo "  "
                 fi
@@ -374,7 +374,7 @@ case $yn in
             echo -ne "  Leave existing Node.js              :"
         elif [[ "$NODE_VERSION" == "" && "$nv" -ne 0 ]]; then
             CHAR="-"
-            echo -ne "  Node option not specified           :   --node16, --node18 or --node20\n"
+            echo -ne "  Node option not specified           :   --node18 or --node20\n"
             echo -ne "  Leave existing Node.js              :"
         else
             if [[ "$NODE_VERSION" == "12" ]]; then
@@ -689,10 +689,12 @@ case $yn in
 
         # on Pi, add launcher to top bar, add cpu temp example, make sure ping works
         echo "Now add launcher to top bar, add cpu temp example, make sure ping works" | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-        if $SUDO grep -q BCM2 /proc/cpuinfo; then
+        if $SUDO grep -q Raspberry /proc/cpuinfo; then
             # $SUDO setcap cap_net_raw+eip $(eval readlink -f `which node`) 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
             $SUDO adduser $NODERED_USER gpio 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-            $SUDO apt install -y python3-rpi.gpio 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+            $SUDO apt purge -y python3-rpi.gpio 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+            $SUDO apt install -y python3-pip 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+            $SUDO pip3 install --break-system-packages rpi-lgpio 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
         fi
         $SUDO setcap cap_net_raw=ep /bin/ping 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
 
@@ -784,19 +786,21 @@ case $yn in
         echo " "
         if [ ! -f ~/.node-red/settings.js ]; then
             initset="${INITSET}"
-            [ ! "${INITSET}" ] && read -t 60 -p "  Would you like to customise the settings now (y/N) ? " initset
+            # [ ! "${INITSET}" ] && read -t 60 -p "  Would you like to customise the settings now (y/N) ? " initset
             case $initset in
                 [Yy]* )
                 node-red admin init
                 $SUDO chown 0:0 ~/.node-red/settings.js
                 ;;
-                "n")
+                [Nn]* )
                 echo "Settings not initialized."
                 exit 0
                 ;;
                 * )
-                echo " "
-                exit 1
+                # echo " "
+                # exit 1
+                node-red admin init
+                $SUDO chown 0:0 ~/.node-red/settings.js
                 ;;
             esac
         fi

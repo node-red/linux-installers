@@ -694,7 +694,7 @@ case $yn in
             $SUDO adduser $NODERED_USER gpio 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
             FAM=$(cat /etc/issue | cut -d ' ' -f 1)
             ISS=$(cat /etc/issue | cut -d '/' -f 2 | cut -d ' ' -f 2)
-            if [[ "$FAM" == "Raspbian" ]]; then
+            if [[ "$FAM" == *"bian" ]]; then
                 if (($ISS > 11)); then
                     echo "Replace old rpi.gpio with lgpio" | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                     $SUDO apt purge -y python3-rpi.gpio 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null

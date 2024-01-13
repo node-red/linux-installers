@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2016,2023 JS Foundation and other contributors, https://js.foundation/
+# Copyright 2016,2024 JS Foundation and other contributors, https://js.foundation/
 # Copyright 2015,2016 IBM Corp.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +26,7 @@ tgta16=16.20.2   # need armv6l latest from https://unofficial-builds.nodejs.org/
 tgtl16=16.20.2   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 tgta18=18.19.0   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 tgtl18=18.4.0    # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta20=20.10.0    # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgta20=20.11.0    # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 # tgtl20=None      # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 
 usage() {
@@ -692,9 +692,16 @@ case $yn in
         if $SUDO grep -q Raspberry /proc/cpuinfo; then
             # $SUDO setcap cap_net_raw+eip $(eval readlink -f `which node`) 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
             $SUDO adduser $NODERED_USER gpio 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-            $SUDO apt purge -y python3-rpi.gpio 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-            $SUDO apt install -y python3-pip 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-            $SUDO pip3 install --break-system-packages rpi-lgpio 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+            ISS=$(cat /etc/issue | cut -d '/' -f 2 | cut -d ' ' -f 2)
+            if (($ISS > 11)); then
+                echo "Replace old rpi.gpio with lgpio" | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                $SUDO apt purge -y python3-rpi.gpio 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                $SUDO apt install -y python3-pip 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                $SUDO pip3 install --break-system-packages rpi-lgpio 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+            else
+                echo "Leaving old rpi.gpio" | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                $SUDO apt install -y python3-rpi.gpio 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+            fi
         fi
         $SUDO setcap cap_net_raw=ep /bin/ping 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
 
@@ -789,6 +796,7 @@ case $yn in
             # [ ! "${INITSET}" ] && read -t 60 -p "  Would you like to customise the settings now (y/N) ? " initset
             case $initset in
                 [Yy]* )
+                export HOSTIP=`hostname -I | cut -d ' ' -f 1`
                 node-red admin init
                 $SUDO chown 0:0 ~/.node-red/settings.js
                 ;;

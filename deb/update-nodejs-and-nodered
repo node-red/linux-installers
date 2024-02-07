@@ -800,7 +800,7 @@ case $yn in
             case $initset in
                 [Yy]* )
                 export HOSTIP=`hostname -I | cut -d ' ' -f 1`
-                node-red admin init
+                /usr/bin/node-red admin init
                 $SUDO chown 0:0 ~/.node-red/settings.js
                 ;;
                 [Nn]* )
@@ -810,7 +810,7 @@ case $yn in
                 * )
                 # echo " "
                 # exit 1
-                node-red admin init
+                /usr/bin/node-red admin init
                 $SUDO chown 0:0 ~/.node-red/settings.js
                 ;;
             esac

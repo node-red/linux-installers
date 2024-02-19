@@ -681,12 +681,12 @@ case $yn in
         # remove unneeded large sentiment library to save space and load time
         $SUDO rm -f /usr/lib/node_modules/node-red/node_modules/multilang-sentiment/build/output/build-all.json 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
         # on LXDE add launcher to top bar, refresh desktop menu
-        file=/home/$NODERED_USER/.config/lxpanel/LXDE-pi/panels/panel
-        if [ -e $file ]; then
+        pfile=/home/$NODERED_USER/.config/lxpanel/LXDE-pi/panels/panel
+        if [ -e $pfile ]; then
             if ! grep -q "Node-RED" $file; then
                 mat="lxterminal.desktop"
                 ins="lxterminal.desktop\n    }\n    Button {\n      id=Node-RED.desktop"
-                $SUDO sed -i "s|$mat|$ins|" $file 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                $SUDO sed -i "s|$mat|$ins|" $pfile 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 if xhost >& /dev/null ; then
                     export DISPLAY=:0 && lxpanelctl restart 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 fi
@@ -810,6 +810,7 @@ case $yn in
                 [Yy]* )
                 export HOSTIP=`hostname -I | cut -d ' ' -f 1`
                 /usr/bin/node-red admin init
+                $SUDO chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.node-red/package* 2>&1 >>/dev/null
                 $SUDO chown 0:0 $file
                 ;;
                 [Nn]* )
@@ -820,6 +821,7 @@ case $yn in
                 # echo " "
                 # exit 1
                 /usr/bin/node-red admin init
+                $SUDO chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.node-red/package* 2>&1 >>/dev/null
                 $SUDO chown 0:0 $file
                 ;;
             esac

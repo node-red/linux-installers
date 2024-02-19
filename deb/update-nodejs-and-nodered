@@ -211,7 +211,11 @@ if [[ "$NODERED_USER" == "" ]]; then
 else
     NODERED_GROUP="$NODERED_USER"
     NODERED_HOME="/home/$NODERED_USER"
+    if [[ "$NODERED_USER" == "root" ]]; then
+        NODERED_HOME="/root"
+    fi
 fi
+SUDOU="sudo -u $NODERED_USER"
 
 if [[ "$(uname)" != "Darwin" ]]; then
 if curl -I https://registry.npmjs.org/@node-red/util  >/dev/null 2>&1; then
@@ -809,8 +813,8 @@ case $yn in
             case $initset in
                 [Yy]* )
                 export HOSTIP=`hostname -I | cut -d ' ' -f 1`
-                /usr/bin/node-red admin init
-                $SUDO chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.node-red/package* 2>&1 >>/dev/null
+                $SUDO chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.node-red 2>&1 >>/dev/null
+                $SUDOU /usr/bin/node-red admin init
                 $SUDO chown 0:0 $file
                 ;;
                 [Nn]* )
@@ -820,8 +824,8 @@ case $yn in
                 * )
                 # echo " "
                 # exit 1
-                /usr/bin/node-red admin init
-                $SUDO chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.node-red/package* 2>&1 >>/dev/null
+                $SUDO chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.node-red/ 2>&1 >>/dev/null
+                $SUDOU /usr/bin/node-red admin init
                 $SUDO chown 0:0 $file
                 ;;
             esac

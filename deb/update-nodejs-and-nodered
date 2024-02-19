@@ -195,6 +195,12 @@ if [ "$EUID" == "0" ]; then
   SUDO=''
   SUDOE=''
   id -u nobody &>/dev/null || adduser --no-create-home --shell /dev/null --disabled-password --disabled-login --gecos '' nobody &>/dev/null
+else
+    groups "$USER" | grep -q ' sudo ' && GRS="Y" || GRS="N"
+    if [[ "$GRS" == "N" ]]; then
+        echo "User $NODERED_USER not in sudoers group. Exiting"
+        exit 1;
+    fi
 fi
 
 # setup user, home and group
@@ -743,6 +749,9 @@ case $yn in
         echo "Finished:  $(date)" | $SUDO tee -a /var/log/nodered-install.log
 
         file=/home/$NODERED_USER/.node-red/settings.js
+        if [[ "$NODERED_USER" == "root" ]]; then
+            file=/root/.node-red/settings.js
+        fi
         if [ ! -f $file ]; then
             echo " "
         elif ! diff -q /usr/lib/node_modules/node-red/settings.js $file &>/dev/null 2>&1 ; then
@@ -772,7 +781,7 @@ case $yn in
             echo "      sudo rm -f /etc/sudoers.d/010_pi-nopasswd"
             echo " "
         fi
-        if [ ! -f ~/.node-red/settings.js ]; then
+        if [ ! -f $file ]; then
             echo "  - You can customise the initial settings by running:"
             echo " "
             echo "      node-red admin init"
@@ -794,14 +803,14 @@ case $yn in
         fi
         echo "**********************************************************************************"
         echo " "
-        if [ ! -f ~/.node-red/settings.js ]; then
+        if [ ! -f $file ]; then
             initset="${INITSET}"
             # [ ! "${INITSET}" ] && read -t 60 -p "  Would you like to customise the settings now (y/N) ? " initset
             case $initset in
                 [Yy]* )
                 export HOSTIP=`hostname -I | cut -d ' ' -f 1`
                 /usr/bin/node-red admin init
-                $SUDO chown 0:0 ~/.node-red/settings.js
+                $SUDO chown 0:0 $file
                 ;;
                 [Nn]* )
                 echo "Settings not initialized."
@@ -811,7 +820,7 @@ case $yn in
                 # echo " "
                 # exit 1
                 /usr/bin/node-red admin init
-                $SUDO chown 0:0 ~/.node-red/settings.js
+                $SUDO chown 0:0 $file
                 ;;
             esac
         fi

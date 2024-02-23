@@ -196,7 +196,7 @@ if [ "$EUID" == "0" ]; then
   SUDOE=''
   id -u nobody &>/dev/null || adduser --no-create-home --shell /dev/null --disabled-password --disabled-login --gecos '' nobody &>/dev/null
 else
-    groups "$USER" | grep -q '^.*\bsudo\b.*' && GRS="Y" || GRS="N"
+    groups "$USER" | grep -q '\bsudo\b' && GRS="Y" || GRS="N"
     if [[ "$GRS" == "N" ]]; then
         echo "User $NODERED_USER not in sudoers group. Exiting"
         exit 1;

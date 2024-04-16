@@ -687,7 +687,7 @@ case $yn in
         # on LXDE add launcher to top bar, refresh desktop menu
         pfile=/home/$NODERED_USER/.config/lxpanel/LXDE-pi/panels/panel
         if [ -e $pfile ]; then
-            if ! grep -q "Node-RED" $file; then
+            if ! grep -q "Node-RED" $pfile; then
                 mat="lxterminal.desktop"
                 ins="lxterminal.desktop\n    }\n    Button {\n      id=Node-RED.desktop"
                 $SUDO sed -i "s|$mat|$ins|" $pfile 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null

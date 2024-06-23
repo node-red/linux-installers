@@ -566,6 +566,7 @@ case $yn in
         # install any nodes, that were installed globally, as local instead
         echo "Now create basic package.json for the user and move any global nodes" | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
         mkdir -p "$NODERED_HOME/.node-red/node_modules"
+        $SUDO chown $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.node-red 2>&1 >>/dev/null 
         $SUDO chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.node-red/node_modules 2>&1 >>/dev/null
         # Make it more secure by making settings owned by root and removing nopasswd file for default user.
         # $SUDO chown -Rf 0:0 $NODERED_HOME/.node-red/settings.js 2>&1 >>/dev/null

@@ -26,8 +26,8 @@ tgta16=16.20.2   # need armv6l latest from https://unofficial-builds.nodejs.org/
 tgtl16=16.20.2   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 tgta18=18.20.3   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 tgtl18=18.20.3   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta20=20.14.0   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
-tgtl20=20.14.0   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
+tgta20=20.15.0   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgtl20=20.15.0   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 
 usage() {
   cat << EOL
@@ -44,11 +44,11 @@ Options:
   --update-nodes    run npm update on existing installed nodes (within scope of package.json)
   --no-init         don't ask to initialise settings if they don't exist
   --nodered-user    specify the user to run as, useful for installing as sudo - e.g. --nodered-user=pi
-  --nodered-version if not set, the latest version is used - e.g. --nodered-version="3.0.1"
+  --nodered-version if not set, the latest version is used - e.g. --nodered-version="4.0.2"
   --node16          if set, forces install of major version of nodejs 16 LTS
   --node18          if set, forces install of major version of nodejs 18 LTS
   --node20          if set, forces install of major version of nodejs 20 LTS
-                    if none set, install nodejs 18 LTS if nodejs version is less than 16,
+                    if none set, install nodejs 20 LTS if nodejs version is less than 18,
                     otherwise leave current install
 
 Note: if you use allow-low-ports it may affect the node modules paths - see https://stackoverflow.com/a/65560687
@@ -101,6 +101,10 @@ if [ $# -gt 0 ]; then
         ;;
       --node20)
         NODE_VERSION="20"
+        shift
+        ;;
+      --node22)
+        NODE_VERSION="22"
         shift
         ;;
       --restart)
@@ -222,7 +226,7 @@ if curl -I https://registry.npmjs.org/@node-red/util  >/dev/null 2>&1; then
 echo -e '\033]2;'$NODERED_USER@`hostname`:  Node-RED update'\007'
 echo " "
 echo "This script checks the version of node.js installed is 16 or greater. It will try to"
-echo "install node 18 if none is found. It can optionally install node 16, 18 or 20 LTS for you."
+echo "install node 20 if none is found. It can optionally install node 18 or 20 LTS for you."
 echo " "
 echo "If necessary it will then remove the old core of Node-RED, before then installing the latest"
 echo "version. You can also optionally specify the version required."
@@ -308,7 +312,7 @@ case $yn in
             NODE_VERSION="12"
         fi
 
-        if [[ "$nv" -lt 16 && "$nv" -ne 0  && "$nrv" != 1 ]]; then
+        if [[ "$nv" -lt 18 && "$nv" -ne 0  && "$nrv" != 1 ]]; then
             if [[ "$NODE_VERSION" == "" ]]; then
                 echo "Nodejs $nv too old and new version not specified - exiting" | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 echo "Node-RED v3.x no longer supports Nodejs $nv "
@@ -316,7 +320,7 @@ case $yn in
                 # echo "  "
                 # echo "  You can use the old v1 branch by specifying --nodered-version=1.*"
                 echo "  "
-                echo "  You can force an install of node 16, 18 or 20 by adding --node18 or --node20 to the end of the command line above."
+                echo "  You can force an install of node 18 or 20 by adding --node18 or --node20 to the end of the command line above."
                 echo "  However doing so may break some nodes that may need re-installing manually."
                 echo "  Generally it is recommended to update all nodes to their latest versions before upgrading."
                 echo "  "
@@ -400,12 +404,15 @@ case $yn in
                 tgtl=$tgtl18
                 tgta=$tgta18
             elif [[ "$NODE_VERSION" == "20" ]]; then
-                tgtl="None"
+                tgtl=$tgtl20
                 tgta=$tgta20
+            elif [[ "$NODE_VERSION" == "22" ]]; then
+                tgtl="None"
+                tgta="None"
             else
-                tgtl=$tgtl18
-                tgta=$tgta18
-                NODE_VERSION="18"
+                tgtl=$tgtl20
+                tgta=$tgta20
+                NODE_VERSION="20"
             fi
             # maybe remove Node.js - or upgrade if nodesource.list exists
             if [[ -d $NODERED_HOME/.nvm ]]; then
@@ -448,33 +455,37 @@ case $yn in
                     rm /tmp/node.tgz 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                     echo -ne "  Install Node.js for i686            $CHAR"
                 else
-                    echo -ne "  Nodejs 20 for i686 does not exist   $CROSS"
+                    echo -ne "  Nodejs "$tgtl" for i686 does not exist   $CROSS"
                 fi
             elif uname -m | grep -q armv6l ; then
-                $SUDO apt remove -y nodejs nodejs-legacy npm 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-                $SUDO rm -rf /etc/apt/sources.d/nodesource.list /usr/lib/node_modules/npm*
-                echo -ne "  Remove old version of Node.js       $TICK   $nv2\r\n"
-                echo -ne "  Install Node.js for Armv6           \r"
-                # f=$(curl -sL https://nodejs.org/download/release/latest-dubnium/ | grep "armv6l.tar.gz" | cut -d '"' -f 2)
-                # curl -sL -o node.tgz https://nodejs.org/download/release/latest-dubnium/$f 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-                curl -sSL -o /tmp/node.tgz https://unofficial-builds.nodejs.org/download/release/v$tgta/node-v$tgta-linux-armv6l.tar.gz 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-                # unpack it into the correct places
-                hd=$(head -c 6 /tmp/node.tgz)
-                if [ "$hd" == "<!DOCT" ] || [ "$hd" == "<html>" ]; then
-                    CHAR="$CROSS File $f not downloaded";
-                else
-                    if [[ -d /tmp/nodejs ]]; then
-                        $SUDO rm -rf /tmp/nodejs
+                if [[ "$tgta" != "None" ]]; then
+                    $SUDO apt remove -y nodejs nodejs-legacy npm 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                    $SUDO rm -rf /etc/apt/sources.d/nodesource.list /usr/lib/node_modules/npm*
+                    echo -ne "  Remove old version of Node.js       $TICK   $nv2\r\n"
+                    echo -ne "  Install Node.js for Armv6           \r"
+                    # f=$(curl -sL https://nodejs.org/download/release/latest-dubnium/ | grep "armv6l.tar.gz" | cut -d '"' -f 2)
+                    # curl -sL -o node.tgz https://nodejs.org/download/release/latest-dubnium/$f 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                    curl -sSL -o /tmp/node.tgz https://unofficial-builds.nodejs.org/download/release/v$tgta/node-v$tgta-linux-armv6l.tar.gz 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                    # unpack it into the correct places
+                    hd=$(head -c 6 /tmp/node.tgz)
+                    if [ "$hd" == "<!DOCT" ] || [ "$hd" == "<html>" ]; then
+                        CHAR="$CROSS File $f not downloaded";
+                    else
+                        if [[ -d /tmp/nodejs ]]; then
+                            $SUDO rm -rf /tmp/nodejs
+                        fi
+                        mkdir -p /tmp/nodejs
+                        $SUDO tar -zxof /tmp/node.tgz --strip-components=1 -C /tmp/nodejs
+                        $SUDO chown -R 0:0 /tmp/nodejs 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                        if $SUDO cp -PR /tmp/nodejs/* /usr/ 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+                        $SUDO rm -rf /tmp/nodejs 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                     fi
-                    mkdir -p /tmp/nodejs
-                    $SUDO tar -zxof /tmp/node.tgz --strip-components=1 -C /tmp/nodejs
-                    $SUDO chown -R 0:0 /tmp/nodejs 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-                    if $SUDO cp -PR /tmp/nodejs/* /usr/ 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
-                    $SUDO rm -rf /tmp/nodejs 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                    # remove the tgz file to save space
+                    rm /tmp/node.tgz 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                    echo -ne "  Install Node.js for Armv6           $CHAR"
+                else
+                    echo -ne "  Nodejs "$tgta" for Armv6 does not exist  $CROSS"
                 fi
-                # remove the tgz file to save space
-                rm /tmp/node.tgz 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-                echo -ne "  Install Node.js for Armv6           $CHAR"
             else
                 echo "Installing nodejs $NODE_VERSION" | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 # clean out old nodejs stuff
@@ -566,6 +577,7 @@ case $yn in
         # install any nodes, that were installed globally, as local instead
         echo "Now create basic package.json for the user and move any global nodes" | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
         mkdir -p "$NODERED_HOME/.node-red/node_modules"
+        $SUDO chown $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.node-red 2>&1 >>/dev/null
         $SUDO chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.node-red/node_modules 2>&1 >>/dev/null
         # Make it more secure by making settings owned by root and removing nopasswd file for default user.
         # $SUDO chown -Rf 0:0 $NODERED_HOME/.node-red/settings.js 2>&1 >>/dev/null
@@ -612,6 +624,11 @@ case $yn in
                 if npm i --unsafe-perm --save --no-progress --no-update-notifier --no-audit --no-fund $EXTRANODES 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
             fi
             echo -ne "  Install extra Pi nodes              $CHAR\r\n"
+
+            # If armv6 then remove the bcrypt binary to workaround illegal instruction error
+            if uname -m | grep -q armv6l ; then
+                $SUDO rm -rf /usr/lib/node_modules/node-red/node_modules/@node-rs | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+            fi
 
         popd 2>&1 >>/dev/null
         if [ -d "$NODERED_HOME/.npm" ]; then

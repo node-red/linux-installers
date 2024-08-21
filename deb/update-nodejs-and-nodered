@@ -26,8 +26,8 @@ tgta16=16.20.2   # need armv6l latest from https://unofficial-builds.nodejs.org/
 tgtl16=16.20.2   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 tgta18=18.20.4   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 tgtl18=18.20.4   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta20=20.15.1   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
-tgtl20=20.15.1   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
+tgta20=20.17.0   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgtl20=20.17.0   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 
 usage() {
   cat << EOL
@@ -202,7 +202,7 @@ if [ "$EUID" == "0" ]; then
 else
     groups "$USER" | grep -q '\bsudo\b' && GRS="Y" || GRS="N"
     if [[ "$GRS" == "N" ]]; then
-        echo "User $NODERED_USER not in sudoers group. Exiting"
+        echo "User $USER not in sudoers group. Exiting"
         exit 1;
     fi
 fi

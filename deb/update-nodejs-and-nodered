@@ -831,7 +831,7 @@ case $yn in
                 [Yy]* )
                 export HOSTIP=`hostname -I | cut -d ' ' -f 1`
                 $SUDO chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.node-red 2>&1 >>/dev/null
-                $SUDOU /usr/bin/node-red admin init
+                $SUDOU /usr/local/bin/node-red admin init
                 $SUDO chown 0:0 $file
                 ;;
                 [Nn]* )
@@ -842,7 +842,7 @@ case $yn in
                 # echo " "
                 # exit 1
                 $SUDO chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.node-red/ 2>&1 >>/dev/null
-                $SUDOU /usr/bin/node-red admin init
+                $SUDOU /usr/local/bin/node-red admin init
                 $SUDO chown 0:0 $file
                 ;;
             esac

@@ -427,12 +427,13 @@ case $yn in
                 nvm alias default $NODE_VERSION >/dev/null 2>&1
                 echo "Now using --- $(nvm current)" 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 ln -f -s $NODERED_HOME/.nvm/versions/node/$(nvm current)/lib/node_modules/node-red/red.js  $NODERED_HOME/node-red
-                echo -ne "  Update Node.js $NODE_VERSION                   $CHAR"
+                echo -ne "  Update Node.js $NODE_VERSION                   $CHAR - Using nvm is NOT recommended/supported."
             elif [[ $(which n) ]]; then
                 echo "Using n" | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 echo -ne "  Using N to manage Node.js           +\r\n"
+                echo -ne '  NOTE: Using n is NOT RECOMMENDED. Please use a standard nodejs install.\r\n'
                 if $SUDO n $NODE_VERSION 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
-                echo -ne "  Update Node.js $NODE_VERSION                   $CHAR"
+                echo -ne "  Update Node.js $NODE_VERSION                   $CHAR - Using n is NOT recommended/supported."
             elif [[ "$(uname -m)" =~ "i686" ]] || [[ "$(uname -m)" =~ "x86_64" && "$(getconf LONG_BIT)" =~ "32" ]]; then
                 echo "Using 32bit nodejs" | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 if [[ "$tgtl" != "None" ]]; then
@@ -812,12 +813,12 @@ case $yn in
             echo " "
             echo "      sudo chown root:root ~/.node-red/settings.js"
             echo " "
-        elif ! [[ $(stat --format '%G' ~/.node-red/settings.js) = "root" ]]; then
-            echo "  - Change the ownership of its settings file to 'root' to prevent unauthorised changes:"
-            echo ""
-            echo "      sudo chown root:root ~/.node-red/settings.js"
-            echo " "
-        fi
+        # elif ! [[ $(stat --format '%G' ~/.node-red/settings.js) = "root" ]]; then
+        #     echo "  - Change the ownership of its settings file to 'root' to prevent unauthorised changes:"
+        #     echo ""
+        #     echo "      sudo chown root:root ~/.node-red/settings.js"
+        #     echo " "
+        # fi
         if [ "$EUID" == "0" ]; then
             echo "  - Do not run Node-RED as root or an administraive account"
             echo " "

@@ -818,7 +818,7 @@ case $yn in
         #     echo ""
         #     echo "      sudo chown root:root ~/.node-red/settings.js"
         #     echo " "
-        # fi
+        fi
         if [ "$EUID" == "0" ]; then
             echo "  - Do not run Node-RED as root or an administraive account"
             echo " "

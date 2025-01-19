@@ -52,13 +52,13 @@ if [[ $(which node-red-pi) ]]; then
         sudo systemctl start nodered
         echo " "
         echo "Starting as a systemd service."
-        sudo journalctl -f -n 0 -u nodered -o cat
+        sudo journalctl -f -n 1 -u nodered -o cat
     elif [ $EUID -eq 0 ]; then
         # Current user is root, start node-red through systemd
         systemctl start nodered
         echo " "
         echo "Starting as root systemd service."
-        journalctl -f -n 0 -u nodered -o cat
+        journalctl -f -n 1 -u nodered -o cat
     else
         # Start node-red as unprivileged user
         echo " "

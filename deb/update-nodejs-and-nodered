@@ -43,6 +43,7 @@ Options:
   --allow-low-ports add capability to bind to ports below 1024 (default is disallow)
   --update-nodes    run npm update on existing installed nodes (within scope of package.json)
   --no-init         don't ask to initialise settings if they don't exist
+  --on-diet         bypass DietPi exit and force install Node-RED on DietPi
   --nodered-user    specify the user to run as, useful for installing as sudo - e.g. --nodered-user=pi
   --nodered-version if not set, the latest version is used - e.g. --nodered-version="4.0.2"
   --node16          if set, forces install of major version of nodejs 16 LTS
@@ -131,6 +132,10 @@ if [ $# -gt 0 ]; then
         INITSET="n"
         shift
         ;;
+      --on-diet)
+        ONDIET="y"
+        shift
+        ;;
       --) # end argument parsing
         shift
         break
@@ -166,10 +171,11 @@ else
 fi
 
 echo -ne "\033[2 q"
-if [[ -e /mnt/dietpi_userdata ]]; then
-    echo -ne "\n\033[1;32mDiet-Pi\033[0m detected - only going to add the  \033[0;36mnode-red-start, -stop, -log\033[0m  commands.\n"
+if [[ -e /mnt/dietpi_userdata && "$ONDIET" != "y" ]]; then
+    echo -ne "\n\033[1;32mDietPi\033[0m detected - only going to add the  \033[0;36mnode-red-start, -stop, -log\033[0m  commands.\n"
     echo -ne "Flow files and other things worth backing up can be found in the \033[0;36m/mnt/dietpi_userdata/node-red\033[0m directory.\n\n"
-    echo -ne "Use the  \033[0;36mdietpi-software\033[0m  command to un-install and re-install \033[38;5;88mNode-RED\033[0m.\n"
+    echo -ne "Use the  \033[0;36mdietpi-software\033[0m  command to un-install and re-install \033[38;5;88mNode-RED\033[0m.\n\n"
+    echo -ne "If you want to force install Node-RED, re-run this script with the \033[0;36m--on-diet\033[0m option.\n\n"
     echo "journalctl -f -n 100 -u node-red -o cat" > /usr/bin/node-red-log
     chmod +x /usr/bin/node-red-log
     echo "systemctl stop node-red" > /usr/bin/node-red-stop
@@ -178,6 +184,27 @@ if [[ -e /mnt/dietpi_userdata ]]; then
     echo "journalctl -f -n 0 -u node-red -o cat" >> /usr/bin/node-red-start
     chmod +x /usr/bin/node-red-start
 else
+
+if [[ -e /mnt/dietpi_userdata && "$ONDIET" == "y" ]]; then
+    DIETPI="y"
+    echo -ne "\n\033[1;32mDietPi\033[0m detected but going to force install of Node-RED.\n"
+    echo -ne "\nThis should only be done if you DO NOT use the dietpi-software\ninstaller to set up nodejs and node-red.\n"
+    echo -ne "\nTrying to mix both will quite probably break something - Use at your own risk.\n\n"
+    read -t 10 -p "Are you really sure you want to force install on DietPi ? (y/N) ? " yn
+    case $yn in
+        [Yy]* )
+        ;;
+        * )
+        echo " "
+        exit 1
+        ;;
+    esac
+    echo -ne "\nOK - fingers crossed.\n\n"
+    apt install -y python3-rpi.gpio 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+    CONFIRM_ROOT="y"
+    CONFIRM_INSTALL="y"
+    CONFIRM_PI="y"
+fi
 
 if [ "$EUID" == "0" ]; then
 # if [[ $SUDO_USER != "" ]]; then
@@ -683,7 +710,7 @@ case $yn in
                 then
                     : # silent procedure
                 else
-                    echo "Customized systemd script found @ $SYSTEMDFILE. To prevent loss of modifications, we'll not recreate the systemd script." | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                    echo "Customized systemd script found @ $SYSTEMDFILE. To prevent loss of modifications, we will not recreate the systemd script." | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                     echo "If you want the installer to recreate the systemd script, please delete or rename the current script & re-run the installer." | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                     CHAR="-   Skipped - existing script is customized."
                 fi
@@ -723,7 +750,7 @@ case $yn in
             FAM=$(cat /etc/issue | cut -d ' ' -f 1)
             ISS=$(cat /etc/issue | cut -d '/' -f 2 | cut -d ' ' -f 2)
             if [[ "$FAM" == *"bian" ]]; then
-                if (($ISS > 11)); then
+                if [ $ISS -gt 11 ] && [ "$DIETPI" != "y" ]; then
                     echo "Replace old rpi.gpio with lgpio" | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                     $SUDO apt purge -y python3-rpi.gpio 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                     $SUDO apt install -y python3-pip 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
@@ -833,7 +860,7 @@ case $yn in
                 export HOSTIP=`hostname -I | cut -d ' ' -f 1`
                 $SUDO chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.node-red 2>&1 >>/dev/null
                 $SUDOU /usr/bin/node-red admin init
-                $SUDO chown 0:0 $file
+                # $SUDO chown 0:0 $file
                 ;;
                 [Nn]* )
                 echo "Settings not initialized."
@@ -844,7 +871,7 @@ case $yn in
                 # exit 1
                 $SUDO chown -Rf $NODERED_USER:$NODERED_GROUP $NODERED_HOME/.node-red/ 2>&1 >>/dev/null
                 $SUDOU /usr/bin/node-red admin init
-                $SUDO chown 0:0 $file
+                # $SUDO chown 0:0 $file
                 ;;
             esac
         fi

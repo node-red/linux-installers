@@ -12,6 +12,7 @@ User=pi
 Group=pi
 WorkingDirectory=/home/pi
 
+Environment="XDG_RUNTIME_DIR=/run/user/%U"
 Environment="NODE_OPTIONS=--max_old_space_size=512"
 # define an optional environment file in Node-RED's user directory to set custom variables externally
 EnvironmentFile=-/home/pi/.node-red/environment

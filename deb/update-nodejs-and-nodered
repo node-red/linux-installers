@@ -26,8 +26,8 @@ tgta16=16.20.2   # need armv6l latest from https://unofficial-builds.nodejs.org/
 tgtl16=16.20.2   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 tgta18=18.20.8   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 tgtl18=18.20.8   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta20=20.19.1  # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
-tgtl20=20.19.1   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
+tgta20=20.19.3  # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgtl20=20.19.3   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 
 usage() {
   cat << EOL

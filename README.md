@@ -7,7 +7,7 @@ Both of the following commands use sudo (root) access to install Node-RED global
 The command line for installing on a Debian based OS is:
 
 ```
-bash <(curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/deb/update-nodejs-and-nodered)
+bash <(curl -sL https://github.com/node-red/linux-installers/releases/latest/download/update-nodejs-and-nodered-deb)
 ```
 
 you should ensure you have the build tools installed if you are going to install extra nodes.
@@ -24,13 +24,13 @@ There are lots of command line options available - add ` --help` to the end of t
 The command line for installing on a RPM based OS is:
 
 ```
-bash <(curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/rpm/update-nodejs-and-nodered)
+bash <(curl -sL https://github.com/node-red/linux-installers/releases/latest/download/update-nodejs-and-nodered-rpm)
 ```
 
 Change e.g. set the system user and open the firewall :
 
 ```bash
-curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/rpm/update-nodejs-and-nodered \
+curl -sL https://github.com/node-red/linux-installers/releases/latest/download/update-nodejs-and-nodered-rpm \
  | bash -s --nodered-user=nodered --open-firewall
 ```
 
@@ -46,7 +46,7 @@ Command Line options:
 
 Or by use of the environment variables e.g. to set service user:
 ```bash
-NODERED_USER=nodered bash <(curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/rpm/update-nodejs-and-nodered)
+NODERED_USER=nodered bash <(curl -sL https://github.com/node-red/linux-installers/releases/latest/download/update-nodejs-and-nodered-rpm)
 ```
 
 Environment variables, please note that the program command line options takes precedence:

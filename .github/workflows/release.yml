@@ -1,0 +1,69 @@
+name: Create Release with Scripts
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version for the release (e.g., v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set version
+      id: version
+      run: |
+        if [ "${{ github.event_name }}" == "push" ]; then
+          echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        else
+          echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Create release directory
+      run: mkdir -p release-assets
+    
+    - name: Copy installer scripts
+      run: |
+        cp deb/update-nodejs-and-nodered release-assets/update-nodejs-and-nodered-deb
+        cp rpm/update-nodejs-and-nodered release-assets/update-nodejs-and-nodered-rpm
+        chmod +x release-assets/update-nodejs-and-nodered-*
+    
+    - name: Create release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.version.outputs.VERSION }}
+        name: Node-RED Linux Installers ${{ steps.version.outputs.VERSION }}
+        body: |
+          Node-RED Linux installer scripts for various distributions.
+          
+          ## Installation
+          
+          ### Debian, Ubuntu, Raspberry Pi OS
+          ```bash
+          bash <(curl -sL https://github.com/node-red/linux-installers/releases/download/${{ steps.version.outputs.VERSION }}/update-nodejs-and-nodered-deb)
+          ```
+          
+          ### Red Hat, Fedora, CentOS, Oracle Linux
+          ```bash
+          bash <(curl -sL https://github.com/node-red/linux-installers/releases/download/${{ steps.version.outputs.VERSION }}/update-nodejs-and-nodered-rpm)
+          ```
+          
+          ## Changes
+          - Updated installer scripts
+          - See commit history for detailed changes
+        files: |
+          release-assets/update-nodejs-and-nodered-deb
+          release-assets/update-nodejs-and-nodered-rpm
+        draft: false
+        prerelease: false

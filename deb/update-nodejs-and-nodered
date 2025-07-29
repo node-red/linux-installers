@@ -26,8 +26,8 @@ tgta16=16.20.2   # need armv6l latest from https://unofficial-builds.nodejs.org/
 tgtl16=16.20.2   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 tgta18=18.20.8   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 tgtl18=18.20.8   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta20=20.19.3  # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
-tgtl20=20.19.3   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
+tgta20=20.19.4  # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgtl20=20.19.4   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 
 usage() {
   cat << EOL
@@ -49,6 +49,7 @@ Options:
   --node16          if set, forces install of major version of nodejs 16 LTS
   --node18          if set, forces install of major version of nodejs 18 LTS
   --node20          if set, forces install of major version of nodejs 20 LTS
+  --node22          if set, forces install of major version of nodejs 22 LTS
                     if none set, install nodejs 20 LTS if nodejs version is less than 18,
                     otherwise leave current install
 
@@ -251,7 +252,25 @@ SUDOU="sudo -u $NODERED_USER"
 
 if [[ "$(uname)" != "Darwin" ]]; then
 if curl -I https://registry.npmjs.org/@node-red/util  >/dev/null 2>&1; then
-echo -e '\033]2;'$NODERED_USER@`hostname`:  Node-RED update'\007'
+if [[ "$(uname -m)" =~ "i686" ]] || [[ "$(uname -m)" =~ "x86_64" && "$(getconf LONG_BIT)" =~ "32" ]]; then
+    echo " "
+    echo "************************************************************"
+    echo " "
+    echo "  Warning :   Nodejs v20 goes EOL in April 2026."
+    echo "  There are no known later Nodejs builds for 32 bit systems."
+    echo " "
+    echo "************************************************************"
+elif uname -m | grep -q armv6l ; then
+    echo " "
+    echo "************************************************************"
+    echo " "
+    echo "  Warning :   Nodejs v20 goes EOL in April 2026."
+    echo "  There are no known later Nodejs builds for Arm v6 systems."
+    echo " "
+    echo "************************************************************"
+fi
+echo " "
+echo Node-RED update script for : $NODERED_USER@`hostname`
 echo " "
 echo "This script checks the version of node.js installed is 16 or greater. It will try to"
 echo "install node 20 if none is found. It can optionally install node 18 or 20 LTS for you."
@@ -416,7 +435,7 @@ case $yn in
             echo -ne "  Leave existing Node.js              :"
         elif [[ "$NODE_VERSION" == "" && "$nv" -ne 0 ]]; then
             CHAR="-"
-            echo -ne "  Node option not specified           :   --node18 or --node20\n"
+            echo -ne "  Node option not specified           :   --node18, --node20 or --node22\n"
             echo -ne "  Leave existing Node.js              :"
         else
             if [[ "$NODE_VERSION" == "12" ]]; then

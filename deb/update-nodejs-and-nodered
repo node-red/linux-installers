@@ -26,8 +26,10 @@ tgta16=16.20.2   # need armv6l latest from https://unofficial-builds.nodejs.org/
 tgtl16=16.20.2   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 tgta18=18.20.8   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 tgtl18=18.20.8   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta20=20.19.4  # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgta20=20.19.4   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 tgtl20=20.19.4   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
+tgta22=22.19.0   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgtl22=None      # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 
 usage() {
   cat << EOL
@@ -260,14 +262,14 @@ if [[ "$(uname -m)" =~ "i686" ]] || [[ "$(uname -m)" =~ "x86_64" && "$(getconf L
     echo "  There are no known later Nodejs builds for 32 bit systems."
     echo " "
     echo "************************************************************"
-elif uname -m | grep -q armv6l ; then
-    echo " "
-    echo "************************************************************"
-    echo " "
-    echo "  Warning :   Nodejs v20 goes EOL in April 2026."
-    echo "  There are no known later Nodejs builds for Arm v6 systems."
-    echo " "
-    echo "************************************************************"
+# elif uname -m | grep -q armv6l ; then
+#     echo " "
+#     echo "************************************************************"
+#     echo " "
+#     echo "  Warning :   Nodejs v20 goes EOL in April 2026."
+#     echo "  There are no known later Nodejs builds for Arm v6 systems."
+#     echo " "
+#     echo "************************************************************"
 fi
 echo " "
 echo Node-RED update script for : $NODERED_USER@`hostname`
@@ -455,7 +457,7 @@ case $yn in
                 tgta=$tgta20
             elif [[ "$NODE_VERSION" == "22" ]]; then
                 tgtl="None"
-                tgta="None"
+                tgta=$tgta22
             else
                 tgtl=$tgtl20
                 tgta=$tgta20

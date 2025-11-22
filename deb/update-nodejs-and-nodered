@@ -28,7 +28,7 @@ tgta18=18.20.8   # need armv6l latest from https://unofficial-builds.nodejs.org/
 tgtl18=18.20.8   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 tgta20=20.19.5   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 tgtl20=20.19.5   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta22=22.21.0   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgta22=22.21.1   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 tgtl22=None
 tgta24=None
 tgtl24=None
@@ -731,6 +731,8 @@ case $yn in
 
             $SUDO sed -i 's#=512#='$mem'#;' ${SYSTEMDFILE}.temp
             $SUDO sed -i 's#^User=.*#User='$NODERED_USER'#;s#^Group=.*#Group='$NODERED_GROUP'#;s#^WorkingDirectory=.*#WorkingDirectory='$NODERED_HOME'#;s#^EnvironmentFile=-.*#EnvironmentFile=-'$NODERED_HOME'/.node-red/environment#;' ${SYSTEMDFILE}.temp
+
+            grep -sq XDG_RUNTIME_DIR $NODERED_HOME/.node-red/environment || echo XDG_RUNTIME_DIR=/run/user/$UID >> $NODERED_HOME/.node-red/environment
 
             if test -f "$SYSTEMDFILE"; then
                 # there's already a systemd script

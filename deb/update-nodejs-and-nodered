@@ -568,7 +568,7 @@ case $yn in
 
                 # block debian nodejs install
                 echo "Package: nodejs" | $SUDO tee /etc/apt/preferences.d/nodejs.pref >>/dev/null
-                echo "Pin: release a=stable-security" | $SUDO tee -a /etc/apt/preferences.d/nodejs.pref >>/dev/null
+                echo "Pin: release a=stable" | $SUDO tee -a /etc/apt/preferences.d/nodejs.pref >>/dev/null
                 echo "Pin-Priority: -1" | $SUDO tee -a /etc/apt/preferences.d/nodejs.pref >>/dev/null
 
                 # use the official script to install for other debian platforms

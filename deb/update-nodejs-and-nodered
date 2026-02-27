@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2016,2025 JS Foundation and other contributors, https://js.foundation/
+# Copyright 2016,2026 JS Foundation and other contributors, https://js.foundation/
 # Copyright 2015,2016 IBM Corp.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Node-RED Installer for DEB based systems
+# Node-RED Installer for Debian based systems
 
 umask 0022
 tgta12=12.22.12  # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
@@ -26,9 +26,9 @@ tgta16=16.20.2   # need armv6l latest from https://unofficial-builds.nodejs.org/
 tgtl16=16.20.2   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 tgta18=18.20.8   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 tgtl18=18.20.8   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta20=20.19.6   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
-tgtl20=20.19.6   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta22=22.21.1   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgta20=20.20.0   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgtl20=20.20.0   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
+tgta22=22.22.0   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 tgtl22=None
 tgta24=None
 tgtl24=None
@@ -54,7 +54,8 @@ Options:
   --node18          if set, forces install of major version of nodejs 18 LTS
   --node20          if set, forces install of major version of nodejs 20 LTS
   --node22          if set, forces install of major version of nodejs 22 LTS
-                    if none set, install nodejs 20 LTS if nodejs version is less than 18,
+  --node24          if set, forces install of major version of nodejs 24 LTS
+                    if none set, install nodejs 22 LTS if nodejs version is less than 20,
                     otherwise leave current install
 
 Note: if you use allow-low-ports it may affect the node modules paths - see https://stackoverflow.com/a/65560687
@@ -264,24 +265,52 @@ if [[ "$(uname -m)" =~ "i686" ]] || [[ "$(uname -m)" =~ "x86_64" && "$(getconf L
     echo " "
     echo "************************************************************"
     echo " "
-    echo "  Warning :   Nodejs v20 goes EOL in April 2026."
-    echo "  There are no known later Nodejs builds for 32 bit systems."
-    echo " "
-    echo "************************************************************"
+    if [[ "$NODE_VERSION" == "24" ]]; then
+        echo "  STOP !                                                    "
+        echo "  There are no known Nodejs v24 builds for 32 bit systems.  "
+        echo "                                                            "
+        echo "************************************************************"
+        exit 1
+    fi
+    if [[ "$NODE_VERSION" == "22" ]]; then
+        echo "  STOP !                                                    "
+        echo "  There are no known Nodejs v22 builds for 32 bit systems.  "
+        echo "                                                            "
+        echo "************************************************************"
+        exit 1
+    fi
 elif uname -m | grep -q armv6l ; then
     echo " "
     echo "************************************************************"
     echo " "
-    echo "  Warning :   Nodejs v22 goes EOL in April 2027."
-    echo "  There are no known later Nodejs builds for Arm v6 systems."
-    echo " "
-    echo "************************************************************"
+    if [[ "$NODE_VERSION" == "20" ]]; then
+        echo "  Warning :                                                 "
+        echo "     Nodejs v20 goes EOL in April 2026.                     "
+        echo "     Nodejs v22 goes EOL in April 2027.                     "
+        echo "     There is no v24 or later builds for Arm v6 systems.    "
+        echo "                                                            "
+        echo "************************************************************"
+        sleep 10
+    elif [[ "$NODE_VERSION" == "22" ]]; then
+        echo "  Warning :                                                 "
+        echo "     Nodejs v22 goes EOL in April 2027.                     "
+        echo "     There is no v24 or later builds for Arm v6 systems.    "
+        echo "                                                            "
+        echo "************************************************************"
+        sleep 10
+    elif [[ "$NODE_VERSION" == "24" ]]; then
+        echo "  STOP !                                                    "
+        echo "     There are no known Nodejs v24 builds for Arm v6.       "
+        echo "                                                            "
+        echo "************************************************************"
+        exit 1
+    fi
 fi
 echo " "
 echo Node-RED update script for : $NODERED_USER@`hostname`
 echo " "
 echo "This script checks the version of node.js installed is 16 or greater. It will try to"
-echo "install node 20 if none is found. It can optionally install node 18 or 20 LTS for you."
+echo "install node 22 if none is found. It can optionally install node 18, 20 or 24 LTS for you."
 echo " "
 echo "If necessary it will then remove the old core of Node-RED, before then installing the latest"
 echo "version. You can also optionally specify the version required."
@@ -330,7 +359,8 @@ case $yn in
 
         nv=0
         # nv2=""
-        nv2=`dpkg -s nodejs 2>/dev/null | grep Version | cut -d ' ' -f 2`
+        # nv2=`dpkg -s nodejs 2>/dev/null | grep Version | cut -d ' ' -f 2`
+        nv2=`node -v 2>/dev/null`
         nrv=`echo $NODERED_VERSION | cut -d "." -f1`
 
         if [[ "$APTOK" == "false" ]]; then
@@ -367,20 +397,20 @@ case $yn in
             NODE_VERSION="12"
         fi
 
-        if [[ "$nv" -lt 18 && "$nv" -ne 0  && "$nrv" != 1 ]]; then
+        if [[ "$nv" -lt 20 && "$nv" -ne 0  && "$nrv" != 1 ]]; then
             if [[ "$NODE_VERSION" == "" ]]; then
                 echo "Nodejs $nv too old and new version not specified - exiting" | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-                echo "Node-RED v3.x no longer supports Nodejs $nv "
+                echo "Node-RED v4.x no longer supports Nodejs $nv "
                 # echo "  Node-RED v2 no longer supports Nodejs $nv.  Please update."
                 # echo "  "
                 # echo "  You can use the old v1 branch by specifying --nodered-version=1.*"
                 echo "  "
-                echo "  You can force an install of node 18 or 20 by adding --node18 or --node20 to the end of the command line above."
+                echo "  You can force an install of node 20, 22, 24 by adding --node20, --node22 or --node24 to the end of the command line above."
                 echo "  However doing so may break some nodes that may need re-installing manually."
                 echo "  Generally it is recommended to update all nodes to their latest versions before upgrading."
                 echo "  "
-                echo "  If you wish to stay on nodejs $nv you can update to the latest Node-RED 1.x or 2.x version by adding"
-                echo '  --nodered-version="1.3.7" or --nodered-version="2.2.2" to that install command. If in doubt this is the safer option.'
+                echo "  If you wish to stay on nodejs $nv you can update to the latest Node-RED 1.x, 2.x or 3.x version by adding"
+                echo '  --nodered-version="1.3.7", --nodered-version="2.2.3", or --nodered-version="3.1.15" to that install command. If in doubt this is the safer option.'
                 if [[ "$npv" != "" ]]; then
                     echo "Checking for outdated nodes in $PWD"
                     npm --silent outdated
@@ -443,7 +473,7 @@ case $yn in
             echo -ne "  Leave existing Node.js              :"
         elif [[ "$NODE_VERSION" == "" && "$nv" -ne 0 ]]; then
             CHAR="-"
-            echo -ne "  Node option not specified           :   --node18, --node20 or --node22\n"
+            echo -ne "  Node option not specified           :   --node20, --node22 or --node24\n"
             echo -ne "  Leave existing Node.js              :"
         else
             if [[ "$NODE_VERSION" == "12" ]]; then
@@ -468,9 +498,9 @@ case $yn in
                 tgtl=$tgtl24
                 tgta=$tgta24
             else
-                tgtl=$tgtl20
-                tgta=$tgta20
-                NODE_VERSION="20"
+                tgtl=$tgtl22
+                tgta=$tgta22
+                NODE_VERSION="22"
             fi
             # maybe remove Node.js - or upgrade if nodesource.list exists
             if [[ -d $NODERED_HOME/.nvm ]]; then
@@ -524,9 +554,9 @@ case $yn in
                     echo -ne "  Install Node.js for Armv6           \r"
                     # f=$(curl -sL https://nodejs.org/download/release/latest-dubnium/ | grep "armv6l.tar.gz" | cut -d '"' -f 2)
                     # curl -sL -o node.tgz https://nodejs.org/download/release/latest-dubnium/$f 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-                    curl -sSL -o /tmp/node.tgz https://unofficial-builds.nodejs.org/download/release/v$tgta/node-v$tgta-linux-armv6l.tar.gz 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                    curl -sSL -o $NODERED_HOME/node.tgz https://unofficial-builds.nodejs.org/download/release/v$tgta/node-v$tgta-linux-armv6l.tar.gz 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                     # unpack it into the correct places
-                    hd=$(head -c 6 /tmp/node.tgz)
+                    hd=$(head -c 6 $NODERED_HOME/node.tgz)
                     if [ "$hd" == "<!DOCT" ] || [ "$hd" == "<html>" ]; then
                         CHAR="$CROSS File $f not downloaded";
                     else
@@ -534,24 +564,36 @@ case $yn in
                             $SUDO rm -rf /tmp/nodejs
                         fi
                         mkdir -p /tmp/nodejs
-                        $SUDO tar -zxof /tmp/node.tgz --strip-components=1 -C /tmp/nodejs
+                        $SUDO tar -zxof $NODERED_HOME/node.tgz --strip-components=1 -C /tmp/nodejs
                         $SUDO chown -R 0:0 /tmp/nodejs 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                         if $SUDO cp -PR /tmp/nodejs/* /usr/ 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
                         $SUDO rm -rf /tmp/nodejs 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                     fi
                     # remove the tgz file to save space
-                    rm /tmp/node.tgz 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                    rm $NODERED_HOME/node.tgz 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                     echo -ne "  Install Node.js for Armv6           $CHAR"
                 else
                     echo -ne "  Nodejs "$tgta" for Armv6 does not exist  $CROSS"
+                    echo " "
+                    echo "************************************************************"
+                    echo " "
+                    echo "  Nodejs "$tgta" for Armv6 does not exist"
+                    echo "  so cannot be installed."
+                    echo "  There are no known later Nodejs builds for 32 bit systems."
+                    echo " "
+                    echo "  Node-RED may still work with nodejs v22."
+                    echo " "
+                    echo "************************************************************"
+                    exit 1
                 fi
             else
                 echo "Installing nodejs $NODE_VERSION" | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 # clean out old nodejs stuff
                 npv=$(npm -v 2>/dev/null | head -n 1 | cut -d "." -f1)
                 $SUDO apt remove -y nodejs nodejs-legacy npm 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-                $SUDO dpkg -r nodejs 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-                $SUDO dpkg -r node 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                $SUDO dpkg -rq nodejs 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                $SUDO dpkg -rq node 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                $SUDO dpkg -rq nsolid 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 $SUDO rm -rf /opt/nodejs 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 $SUDO rm -rf /usr/local/lib/nodejs* 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 $SUDO rm -f /usr/local/bin/node* 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
@@ -578,9 +620,9 @@ case $yn in
                 # curl -sSL https://deb.nodesource.com/setup_$NODE_VERSION.x | $SUDOE bash - 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_VERSION.x nodistro main" | $SUDOE tee -a /etc/apt/sources.list.d/nodesource.list >>/dev/null
                 $SUDO apt-get update 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-                if $SUDO apt install -y nodejs/nodistro 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
-                nov2=$(dpkg -s nodejs | grep Version | cut -d ' ' -f 2)
-                echo -ne "  Install Node $nov2   $CHAR"
+                if $SUDO apt install -y --reinstall nodejs/nodistro 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+                nov2=$(node -v)
+                echo -ne "  Install Node $nov2               $CHAR"
                 # echo -ne "  Install Node.js $NODE_VERSION LTS              $CHAR"
             fi
         fi
@@ -600,7 +642,6 @@ case $yn in
             echo -ne "\b$CROSS   Bad install:  Node.js $nov  Npm $npv - Exit\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n"
             exit 2
         fi
-        if [ "$EUID" == "0" ]; then npm config set unsafe-perm true &>/dev/null; fi
 
         # clean up the npm cache and node-gyp
         if [[ "$NUPG" == "$TICK" ]]; then
@@ -624,10 +665,10 @@ case $yn in
         fi
 
         if [[ "$GLOBAL" == "true" ]]; then
-            $SUDO npm i -g --unsafe-perm --no-progress --no-update-notifier --no-audit --no-fund --loglevel=error node-red@"$NODERED_VERSION_SELECTION" 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null; nri=${PIPESTATUS[0]}
+            $SUDO npm i -g --no-progress --no-update-notifier --no-audit --no-fund --loglevel=error node-red@"$NODERED_VERSION_SELECTION" 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null; nri=${PIPESTATUS[0]}
             if [[ $nri -eq 0 ]]; then CHAR=$TICK; else CHAR=$CROSS; fi
         else
-            npm i -g --unsafe-perm --no-progress --no-update-notifier --no-audit --no-fund --loglevel=error node-red@"$NODERED_VERSION_SELECTION" 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null; nri=${PIPESTATUS[0]}
+            npm i -g --no-progress --no-update-notifier --no-audit --no-fund --loglevel=error node-red@"$NODERED_VERSION_SELECTION" 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null; nri=${PIPESTATUS[0]}
             if [[ $nri -eq 0 ]]; then CHAR=$TICK; else CHAR=$CROSS; fi
         fi
         nrv=$(npm -g --no-progress --no-update-notifier --no-audit --no-fund --loglevel=error ls node-red | grep node-red | cut -d '@' -f 2 | $SUDO tee -a /var/log/nodered-install.log) >>/dev/null 2>&1
@@ -656,7 +697,7 @@ case $yn in
             fi
             CHAR="-"
             if [[ $GLOBALNODES != " " ]]; then
-                if npm i --unsafe-perm --save --no-progress --no-update-notifier --no-audit --no-fund $GLOBALNODES 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+                if npm i --save --no-progress --no-update-notifier --no-audit --no-fund $GLOBALNODES 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
             fi
             echo -ne "  Move global nodes to local          $CHAR\r\n"
 
@@ -680,7 +721,7 @@ case $yn in
             CHAR="-"
             if [[ ! -z $EXTRANODES ]]; then
                 echo "Installing extra nodes: $EXTRANODES :" | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-                if npm i --unsafe-perm --save --no-progress --no-update-notifier --no-audit --no-fund $EXTRANODES 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
+                if npm i --save --no-progress --no-update-notifier --no-audit --no-fund $EXTRANODES 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null; then CHAR=$TICK; else CHAR=$CROSS; fi
             fi
             echo -ne "  Install extra Pi nodes              $CHAR\r\n"
 
@@ -786,8 +827,9 @@ case $yn in
                 if [ $ISS -gt 11 ] && [ "$DIETPI" != "y" ]; then
                     echo "Replace old rpi.gpio with lgpio" | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                     $SUDO apt purge -y python3-rpi.gpio 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-                    $SUDO apt install -y python3-pip 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
-                    $SUDO pip3 install --break-system-packages rpi-lgpio 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                    # $SUDO apt install -y python3-pip 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                    # $SUDO pip3 install --break-system-packages rpi-lgpio 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+                    $SUDO apt install -y python3-rpi-lgpio 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                 else
                     echo "Leaving old rpi.gpio" | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
                     $SUDO apt install -y python3-rpi.gpio 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null

@@ -491,11 +491,11 @@ if (flags.has('--diff') || flags.has('--dry-run')) {
     console.log('✓ No local customisations found — output would be identical to upstream.');
   }
   if (changed.length > 0) {
-    console.log(`\n📋 Local values that will be patched in (${changed.length}):\n`);
+    console.log(`\n📋 Existing Local values that will be patched kept in (${changed.length}):\n`);
     for (const { key, from, to } of changed) {
       console.log(`  ~ ${key}`);
-      console.log(`      new settings  : ${from}`);
-      console.log(`      local settings: ${to}`);
+      console.log(`      new setting : ${from}`);
+      console.log(`      local value : ${to}`);
     }
   }
   if (orphaned.length > 0) {

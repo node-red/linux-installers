@@ -26,9 +26,9 @@ tgta16=16.20.2   # need armv6l latest from https://unofficial-builds.nodejs.org/
 tgtl16=16.20.2   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
 tgta18=18.20.8   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 tgtl18=18.20.8   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta20=20.20.0   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
-tgtl20=20.20.0   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
-tgta22=22.22.0   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgta20=20.20.2   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgtl20=20.20.2   # need x86 latest from https://unofficial-builds.nodejs.org/download/release/
+tgta22=22.22.2   # need armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 tgtl22=None
 tgta24=None
 tgtl24=None
@@ -878,11 +878,11 @@ case $yn in
         fi
         if [ ! -f $file ]; then
             echo " "
-        elif ! diff -q /usr/lib/node_modules/node-red/settings.js $file &>/dev/null 2>&1 ; then
+        elif ! diff -q -w --suppress-common-lines /usr/lib/node_modules/node-red/settings.js $file &>/dev/null 2>&1 ; then
             echo " "
             echo "Just FYI : Your settings.js file is different from the latest defaults."
             echo "You may wish to run"
-            echo "   diff -y --suppress-common-lines /usr/lib/node_modules/node-red/settings.js $file"
+            echo "   diff -y -w --suppress-common-lines /usr/lib/node_modules/node-red/settings.js $file"
             echo "to compare them and see what the latest options are."
             echo " "
         fi

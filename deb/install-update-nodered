@@ -80,6 +80,7 @@ Options:
   --node26          if set, forces install of latest major version of nodejs 26 LTS
                     if none set, install nodejs 24 LTS if no nodejs is installed
                     otherwise leave current nodejs install
+  --clean           force overwrite of .node-red directory, systemd script, settings.js, nodejs
 
 Note: if you use allow-low-ports it may affect the node modules paths - see https://stackoverflow.com/a/65560687
 EOL
@@ -149,6 +150,14 @@ if [ $# -gt 0 ]; then
         ;;
       --on-diet)
         ONDIET="y"
+        shift
+        ;;
+      --clean)
+        FORCE_INSTALL="y"                  # delete existing .node-red
+        FORCE_NODE="y"                     # [re]install node.js
+        if [[ "$INITSET" != "n" ]] ; then
+            INITSET="y"                    # run initial setup script
+        fi
         shift
         ;;
       --) # end argument parsing
@@ -327,6 +336,11 @@ if [ $CURL_RC -eq 0 ]; then
         echo -ne "Node.js and Npm not found - will try to install Node.js $NODE_VERSION\n\n"
     fi
 
+    if [[ "$FORCE_INSTALL" == "y" ]] ; then
+        echo "** WARNING the --clean option will COMPLETELY OVERWRITE your .node-red directory **"
+        echo
+    fi
+
     yn="${CONFIRM_INSTALL}"
     [ ! "${yn}" ] && read -t 30 -p "Are you really sure you want to do this ? [y/N] ? " yn
     case $yn in
@@ -493,6 +507,10 @@ if [ $CURL_RC -eq 0 ]; then
                 if [ ${PIPESTATUS[0]} -eq 0 ]; then CHAR=$TICK; else CHAR=$CROSS; fi
                 echo -ne "  Stop Node-RED                       $CHAR\r\n"
             fi
+            if [[ "$FORCE_INSTALL" == "y" ]] ; then            # delete .node-red
+                echo "  Removing any existing .node-red directory... " 
+                $SUDO rm -rf "$NODERED_HOME/.node-red" 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
+            fi
 
             # remove any old node-red installs or files
             $SUDO rm -rf /usr/local/lib/node_modules/node-red* /usr/local/bin/node-red* 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
@@ -629,6 +647,9 @@ EOF
                 grep -sq XDG_RUNTIME_DIR "$NODERED_HOME/.node-red/environment" || echo XDG_RUNTIME_DIR=/run/user/$(id -u "$NODERED_USER") >> "$NODERED_HOME/.node-red/environment"
 
                 if test -f "$SYSTEMDFILE"; then
+                    if [[ "$FORCE_INSTALL" == "y" ]] ; then           # Overwrite systemd script          
+                        $SUDO cp "${SYSTEMDFILE}.temp" "$SYSTEMDFILE"
+                    fi
                     # there's already a systemd script - compare checksums to detect customisation
                     EXISTING_FILE=$(md5sum "$SYSTEMDFILE" | cut -d ' ' -f 1)
                     TEMP_FILE=$(md5sum "${SYSTEMDFILE}.temp" | cut -d ' ' -f 1)
@@ -702,6 +723,9 @@ EOF
             fi
 
             echo -ne "  All done.\r\n\r\n"
+            if [[ "$FORCE_INSTALL" == "y" ]] ; then      # Don't restart node-red NB it does leave status "enabled"
+                WAS_RUNNING="n"
+            fi
             if [[ "$WAS_RUNNING" == "y" ]]; then
                 echo -ne "\033[1mRestarting \033[38;5;88mNode-RED\033[0m service\r\n"
                 $SUDO systemctl restart nodered

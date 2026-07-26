@@ -337,8 +337,20 @@ if [ $CURL_RC -eq 0 ]; then
     fi
 
     if [[ "$FORCE_INSTALL" == "y" ]] ; then
-        echo "** WARNING the --clean option will COMPLETELY OVERWRITE your .node-red directory **"
-        echo
+    echo " "
+    echo "********************************************************************************"
+    echo "**                                                                            **"
+    echo "**  Warning :                                                                 **"
+    echo "**     The --clean option will COMPLETELY OVERWRITE your .node-red directory  **"
+    echo "**                                                                            **"
+    echo "**     This will remove existing projects                                     **"
+    echo "**                               flows                                        **"
+    echo "**                               installed nodes                              **"
+    echo "**                               users                                        **"
+    echo "**                               settings file                                **"
+    echo "**                               and other customisation                      **"
+    echo "**                                                                            **"
+    echo "********************************************************************************"
     fi
 
     yn="${CONFIRM_INSTALL}"

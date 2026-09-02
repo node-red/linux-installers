@@ -56,6 +56,19 @@ elif uname -m | grep -q armv6l ; then
     NODE_VERSION=22
     ARMV6="y"
 fi
+CODENAME=$(grep -oP '(?<=^VERSION_CODENAME=).+' /etc/os-release)
+if [[ "$CODENAME" == "buster" ]]; then
+    echo " "
+    echo "************************************************************"
+    echo "                                                            "
+    echo "  Warning :                                                 "
+    echo "     Debian Buster is no longer supported by Node.js        "
+    echo "     Please upgrade to Bullseye or (preferably) later       "
+    echo "                                                            "
+    echo "************************************************************"
+    echo " "
+    exit 1
+fi
 
 umask 0022
 
@@ -451,6 +464,9 @@ if [ $CURL_RC -eq 0 ]; then
                     NUPG=$CHAR
                     echo -ne "\b $CHAR   $nv2 : Npm $np2\r\n"
                 else
+                    if [[ "$NODE_VERSION" -gt 22 && "$(getconf LONG_BIT)" =~ "32" ]]; then
+                        $NODE_VERSION=22
+                    fi
                     if [[ "$APTOK" == "false" ]]; then
                         if HAS_NODE; then echo -en "\b$CROSS   MISSING: Npm\r\n"; fi
                         if HAS_NPM; then echo -en "\b$CROSS   MISSING: Node.js\r\n"; fi
@@ -520,7 +536,7 @@ if [ $CURL_RC -eq 0 ]; then
                 echo -ne "  Stop Node-RED                       $CHAR\r\n"
             fi
             if [[ "$FORCE_INSTALL" == "y" ]] ; then            # delete .node-red
-                echo "  Removing any existing .node-red directory... " 
+                echo "  Removing any existing .node-red directory... "
                 $SUDO rm -rf "$NODERED_HOME/.node-red" 2>&1 | $SUDO tee -a /var/log/nodered-install.log >>/dev/null
             fi
 
@@ -659,7 +675,7 @@ EOF
                 grep -sq XDG_RUNTIME_DIR "$NODERED_HOME/.node-red/environment" || echo XDG_RUNTIME_DIR=/run/user/$(id -u "$NODERED_USER") >> "$NODERED_HOME/.node-red/environment"
 
                 if test -f "$SYSTEMDFILE"; then
-                    if [[ "$FORCE_INSTALL" == "y" ]] ; then           # Overwrite systemd script          
+                    if [[ "$FORCE_INSTALL" == "y" ]] ; then           # Overwrite systemd script
                         $SUDO cp "${SYSTEMDFILE}.temp" "$SYSTEMDFILE"
                     fi
                     # there's already a systemd script - compare checksums to detect customisation

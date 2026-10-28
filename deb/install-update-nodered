@@ -19,7 +19,7 @@
 # Default Node.js major version to install if none is present or --nodeXX flag is used
 NODE_VERSION=24
 # Pinned Node.js v22 build for ARMv6 (Pi Zero/1) - no v24+ builds exist for this arch
-tgta22=22.23.1   # armv6l latest from https://unofficial-builds.nodejs.org/download/release/
+tgta22=22.23.4   # armv6l latest from https://unofficial-builds.nodejs.org/download/release/
 ARMV6="n"
 
 if [ ! -f /etc/debian_version ] || [ "$(uname)" == "Darwin" ]; then
